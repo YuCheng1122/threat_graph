@@ -17,7 +17,7 @@ async def request_params_error_handler(request: Request, exc: RequestParamsError
 
 # -----------------------------------------------------------------------------------------------------------
 
-from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError
+from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
 
 
 async def user_not_found_error_handler(request: Request, exc: UserNotFoundError):
@@ -35,3 +35,5 @@ async def user_existed_error_handler(request: Request, exc: UserExistedError):
 async def user_disabled_error_handler(request: Request, exc: UserDisabledError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
 
+async def invalid_token_error_handler(request: Request, exc: InvalidTokenError):
+    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})

@@ -9,9 +9,12 @@ from pathlib import Path
 
 from app.routes.view import router as view_router
 from app.routes.auth import router as auth_router
-from app.ext.error import GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError, UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError
-from app.ext.error_handler import graph_controller_error_handler, not_found_user_error_handler, elasticsearch_error_handler, request_params_error_handler, user_not_found_error_handler, auth_controller_error_handler, invalid_password_error_handler, user_existed_error_handler, user_disabled_error_handler
-
+from app.ext.error import (
+    GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError, UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
+)
+from app.ext.error_handler import (
+    graph_controller_error_handler, not_found_user_error_handler, elasticsearch_error_handler, request_params_error_handler, user_not_found_error_handler, auth_controller_error_handler, invalid_password_error_handler, user_existed_error_handler, user_disabled_error_handler, invalid_token_error_handler
+)
 # Load environment variables
 load_dotenv()
 
@@ -36,6 +39,7 @@ app.add_exception_handler(AuthControllerError, auth_controller_error_handler)
 app.add_exception_handler(InvalidPasswordError, invalid_password_error_handler)
 app.add_exception_handler(UserExistedError, user_existed_error_handler)
 app.add_exception_handler(UserDisabledError, user_disabled_error_handler)
+app.add_exception_handler(InvalidTokenError, invalid_token_error_handler)
 
 
 # Serve the HTML file at the root URL

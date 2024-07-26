@@ -10,7 +10,7 @@ import os
 import logging
 
 from app.models.user import UserModel
-from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError
+from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
 
 # Load environment variables
 load_dotenv()
@@ -116,57 +116,30 @@ class AuthController:
           raise AuthControllerError(f"An error occurred: {e}")
 
     @classmethod
-    async def get_current_user(cls, token: str = Depends(oauth2_scheme)) -> 'User':
+    async def get_current_user(cls, token: str = Depends(oauth2_scheme)) -> 'UserModel':
         """Get the current user from the provided JWT token."""
         logging.info(f"Getting current user from token")
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+
         try:
-            payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-            username: str = payload.get("sub")
-            if username is None:
-                raise credentials_exception
-            token_data = TokenData(username=username)
+          payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
+          username: str = payload.get("sub")
+          if username is None:
+            raise InvalidTokenError()
+
+          user = UserModel.get_user(username)
+          if user is None or user.disabled:
+            raise InvalidTokenError()
+          return user
+
         except JWTError:
-            raise credentials_exception
-        user = cls.get_user(cls.fake_users_db, username=token_data.username)
-        if user is None:
-            raise credentials_exception
-        return user
+          raise InvalidTokenError()
+        except Exception as e:
+          logging.error(f"An error occurred: {e}")
+          raise AuthControllerError(f"An error occurred: {e}")
 
     #------------------------------------------------------------------------------
-    # Not needed
 
-    @classmethod
-    async def get_current_active_user(cls, current_user: 'User' = Depends(lambda: cls.get_current_user())) -> 'User':
-        """Get the current active user, ensuring they are not disabled."""
-        logging.info(f"Getting current active user {current_user.username}")
-        if current_user.disabled:
-            raise HTTPException(status_code=400, detail="Inactive user")
-        return current_user
-
-    @classmethod
-    def get_user(cls, db: dict, username: str) -> Optional['UserInDB']:
-        """
-        Retrieve a user from the database.
-
-        Args:
-            db (dict): User database
-            username (str): Username to look up
-
-        Returns:
-            Optional['UserInDB']: User object if found, None otherwise
-        """
-        logging.info(f"Getting user {username}")
-        if username in db:
-            user_dict = db[username]
-            return UserInDB(**user_dict)
-        logging.error(f"User {username} not found in database")
-        return None
-
+    
 
 
 # Pydantic models

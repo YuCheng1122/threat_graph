@@ -8,11 +8,13 @@ from app.schemas.edge import Edge as EdgeSchema
 from app.schemas.graphdata import GraphData
 from app.models.node import Node
 from app.models.edge import Edge
-from app.utils.auth import get_current_active_user, User
+# from app.utils.auth import get_current_active_user, User
 
 from app.schemas.event import Event as EventSchema  # new
 from app.controllers.graph import GraphController # new
-from app.ext.error import RequestParamsError
+from app.ext.error import RequestParamsError # new
+from app.controllers.auth import AuthController, get_current_active_user, User # new
+from app.models.user import UserModel
 
 router = APIRouter()
 
@@ -79,23 +81,23 @@ async def get_all_edges(current_user: User = Depends(get_current_active_user)):
 
 
 @router.post("/data/")
-async def receive_traffic_and_alert_date(event: EventSchema, current_user = {"user_id": "1", "user_account": "user1@example.com"}):
+async def receive_traffic_and_alert_date(event: EventSchema, current_user: UserModel = Depends(AuthController.get_current_user)):
     '''
         Receives and stores alert or traffic event data.
     '''
     if event.event_type == "alert":
-        await GraphController.save_alert_data(event=event, user_id=current_user['user_id'])
+        await GraphController.save_alert_data(event=event, username=current_user.username)
     elif event.event_type == "flow":
-        await GraphController.save_flow_data(event=event, user_id=current_user['user_id'])
-    return JSONResponse(success=True, status_code=200, content={"message": "Event stored successfully"})
+        await GraphController.save_flow_data(event=event, username=current_user.username)
+    return JSONResponse(status_code=200, content={'success': True, "message": "Event stored successfully"})
 
 
 @router.get("/graph_data")
-async def get_traffic_data(start_time: datetime = Query(...), end_time: datetime = Query(...), current_user = {"user_id": "1", "user_account": "user1@example.com"}):
+async def get_traffic_data(start_time: datetime = Query(...), end_time: datetime = Query(...), current_user: UserModel = Depends(AuthController.get_current_user)):
     '''
         Get graph data for a given time range.
     '''
-    graph_data = await GraphController.get_graph_data(start_time=start_time, end_time=end_time, user_id=current_user['user_id'])
-    return JSONResponse(success=True, status_code=200, content=graph_data)
+    graph_data = await GraphController.get_graph_data(start_time=start_time, end_time=end_time, username=current_user.username)
+    return JSONResponse(status_code=200, content={'success': True, 'content': graph_data})
 
 

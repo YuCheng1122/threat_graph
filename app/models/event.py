@@ -53,7 +53,7 @@ class EventModel:
     
 
     @staticmethod
-    async def save_to_json(event:'EventModel', user_id: str, filename="app/example_data2.json"):
+    async def save_to_json(event:'EventModel', username: str, filename="app/example_data2.json"):
         """Save an Event object to a JSON file, updating existing data."""
         try:
           # Read existing data
@@ -62,12 +62,12 @@ class EventModel:
           
           # Update data
           if datas.get(user_id) is not None:
-              print("user_account: ", datas[user_id]['user_account'])
-              print("user data length: ", len(datas[user_id]['datas']))
+              print("user_account: ", datas[username]['user_account'])
+              print("user data length: ", len(datas[username]['datas']))
               datas[user_id]['datas'].append(event.to_dict())
                   
           else:
-              raise NotFoundUserError(f"User ID {user_id} not found in the data", 404)
+              raise NotFoundUserError(f"User name {username} not found in the data", 404)
           
           with open(filename, 'w') as f:
               json.dump(datas, f, indent=2)
@@ -79,7 +79,7 @@ class EventModel:
 
 
     @staticmethod
-    async def load_from_json_with_time_range(user_id: str, start_time: datetime, end_time: datetime, filename="app/example_data2.json") -> List['Event']:
+    async def load_from_json_with_time_range(username: str, start_time: datetime, end_time: datetime, filename="app/example_data2.json") -> List['Event']:
         """Load Events from a JSON file and return a list of Event objects."""
         
         try:
@@ -88,8 +88,8 @@ class EventModel:
                 datas = json.load(f)
 
             result = []
-            if datas.get(user_id) is not None:
-              for data in datas[user_id]['datas']:
+            if datas.get(username) is not None:
+              for data in datas[username]['datas']:
                 timestamp_dt = datetime.strptime(data['timestamp'], "%Y-%m-%dT%H:%M:%S.%f%z")
                 formatted_timestamp = timestamp_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-4]
                 final_datetime = datetime.strptime(formatted_timestamp, "%Y-%m-%dT%H:%M:%S.%f")
@@ -97,7 +97,7 @@ class EventModel:
                 if final_datetime >= start_time and final_datetime <= end_time:
                     result.append(data)
             else:
-              raise NotFoundUserError(f"User ID {user_id} not found in the data", 404)
+              raise NotFoundUserError(f"User ID {username} not found in the data", 404)
                 
             return result
 

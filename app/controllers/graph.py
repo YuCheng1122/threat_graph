@@ -5,10 +5,10 @@ from app.ext.error import GraphControllerError, NotFoundUserError, Elasticsearch
 class GraphController:
 
     @staticmethod
-    async def get_graph_data(start_time: datetime, end_time: datetime, user_id: str):
+    async def get_graph_data(start_time: datetime, end_time: datetime, username: str):
 
       try:
-        datas = await EventModel.load_from_json_with_time_range(user_id=user_id, start_time=start_time, end_time=end_time)
+        datas = await EventModel.load_from_json_with_time_range(username=username, start_time=start_time, end_time=end_time)
 
         stage_ip = {}
         nodes = []
@@ -38,10 +38,11 @@ class GraphController:
             'target': target,
             'attributes': data
           })
-        
+            
+
         result = {
-          'start_time': start_time,
-          'end_time': end_time,
+          'start_time': start_time.isoformat(),
+          'end_time': end_time.isoformat(),
           'nodes': nodes,
           'edges': edges
         }
@@ -59,12 +60,12 @@ class GraphController:
 
 
     @staticmethod
-    async def save_flow_data(event, user_id: str):
+    async def save_flow_data(event, username: str):
       # processing data
       # save data to database
       try:
           event_model = EventModel(event)
-          await EventModel.save_to_json(event=event_model, user_id=user_id)
+          await EventModel.save_to_json(event=event_model, username=username)
 
       except NotFoundUserError as e:
         raise e
@@ -77,13 +78,13 @@ class GraphController:
             
 
     @staticmethod
-    async def save_alert_data(event, user_id: str):
+    async def save_alert_data(event, username: str):
       # processing data
       # save data to database
       try:
       
         event_model = EventModel(event)
-        await EventModel.save_to_json(event=event_model, user_id=user_id)
+        await EventModel.save_to_json(event=event_model, username=username)
 
       except NotFoundUserError as e:
         raise e
