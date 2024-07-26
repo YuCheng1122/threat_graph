@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Visualization</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.1.2/echarts.min.js"></script>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div id="controls">
+    <div>
+      <label for="start-time">Start Time:</label>
+      <input type="datetime-local" id="start-time" step="1">
+      <label for="end-time">End Time:</label>
+      <input type="datetime-local" id="end-time" step="1">
+      <button onclick="fetchData()">Fetch Data</button>
+    </div>
+    <div>
+      <button class="zoom-button" onclick="zoomIn()">+</button>
+      <button class="zoom-button" onclick="zoomOut()">-</button>
+    </div>
+  </div>
+  <div id="main"></div>
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
