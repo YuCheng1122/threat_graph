@@ -139,6 +139,7 @@ class AuthManager:
             raise HTTPException(status_code=400, detail="Inactive user")
         return current_user
 
+
 # Pydantic models
 class Token(BaseModel):
     access_token: str

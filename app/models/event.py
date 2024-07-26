@@ -79,7 +79,7 @@ class EventModel:
 
 
     @staticmethod
-    async def load_from_json_with_time_range(user_id: str, start_time: datetime, end_time: datetime, filename="app/example_data3.json") -> List['Event']:
+    async def load_from_json_with_time_range(user_id: str, start_time: datetime, end_time: datetime, filename="app/example_data2.json") -> List['Event']:
         """Load Events from a JSON file and return a list of Event objects."""
         
         try:

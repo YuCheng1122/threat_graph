@@ -2,7 +2,8 @@
   "1": {
     "user_id": "1",
     "user_account": "user1@example.com",
-    "password": "dqopwdqdqpod",
+    "password": "$2b$12$HxvC6jr.iFnkxvSvXLdycefrV4dn0MSkqfopJKS809qG4qLNTBaWK",
+    "disabled": false,
     "datas": [
       {
         "timestamp": "2024-07-25T14:25:45.654321+0000",
@@ -157,7 +158,8 @@
   "2": {
     "user_id": "2",
     "user_account": "user2@example.com",
-    "password": "dqopwdqdqpod",
+    "password": "$2b$12$HxvC6jr.iFnkxvSvXLdycefrV4dn0MSkqfopJKS809qG4qLNTBaWK",
+    "disabled": false,
     "datas": [
       {
         "timestamp": "2024-07-25T14:30:22.369258+0000",
@@ -269,5 +271,17 @@
         }
       }
     ]
+  },
+  "3": {
+    "username": "3",
+    "password": "$2b$12$FbkuI/nUsCY2zW/ap2dRl.Tpam0CKESLeFS.1iQEGEqEqnn2sxzLe",
+    "disabled": true,
+    "datas": []
+  },
+  "4": {
+    "username": "4",
+    "password": "$2b$12$e6xTC6k9OkrQF/5hI3hPXeA6X.i4gbFKEfrxrnR0CgSmtr8zhTqeW",
+    "disabled": true,
+    "datas": []
   }
 }
