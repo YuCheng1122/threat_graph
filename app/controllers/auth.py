@@ -137,34 +137,3 @@ class AuthController:
           logging.error(f"An error occurred: {e}")
           raise AuthControllerError(f"An error occurred: {e}")
 
-    #------------------------------------------------------------------------------
-
-    
-
-
-# Pydantic models
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-class User(BaseModel):
-    username: str
-    disabled: Optional[bool] = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-# Wrapper functions
-async def get_current_user(token: str = Depends(AuthController.oauth2_scheme)):
-    return await AuthController.get_current_user(token)
-
-
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    return await AuthController.get_current_active_user(current_user)

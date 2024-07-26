@@ -18,6 +18,7 @@ class UserModel:
             datas[username] = {
                 "username": username,
                 "password": password,
+                "disabled": False,
                 "datas": []
             }
 

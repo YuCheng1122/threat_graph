@@ -152,6 +152,28 @@
         },
         "signature": "ET MALWARE Possible Win32/DoS Trojan.A Variants",
         "severity": 2
+      },
+      {
+        "timestamp": "2024-07-25T14:20:10.123456+00:00",
+        "event_type": "alert",
+        "src_ip": "192.168.1.100",
+        "dest_ip": "192.168.1.1",
+        "src_port": 54321,
+        "dest_port": 80,
+        "proto": "TCP",
+        "app_proto": "http",
+        "tags": {
+          "src_ip": [
+            "internal",
+            "suspicious"
+          ],
+          "dest_ip": [
+            "gateway",
+            "critical"
+          ]
+        },
+        "signature": "ET MALWARE Possible Win32/DoS Trojan.A Variants",
+        "severity": 2
       }
     ]
   },
@@ -282,6 +304,12 @@
     "username": "4",
     "password": "$2b$12$e6xTC6k9OkrQF/5hI3hPXeA6X.i4gbFKEfrxrnR0CgSmtr8zhTqeW",
     "disabled": true,
+    "datas": []
+  },
+  "5": {
+    "username": "5",
+    "password": "$2b$12$VhTgCGY3sfu/732qRCUpjOkp87VAsPO20uvYdxiGrxajjVhM1jvNm",
+    "disabled": false,
     "datas": []
   }
 }

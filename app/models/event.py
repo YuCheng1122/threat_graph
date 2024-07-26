@@ -61,10 +61,10 @@ class EventModel:
               datas = json.load(f)
           
           # Update data
-          if datas.get(user_id) is not None:
+          if datas.get(username) is not None:
               print("user_account: ", datas[username]['user_account'])
               print("user data length: ", len(datas[username]['datas']))
-              datas[user_id]['datas'].append(event.to_dict())
+              datas[username]['datas'].append(event.to_dict())
                   
           else:
               raise NotFoundUserError(f"User name {username} not found in the data", 404)

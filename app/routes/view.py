@@ -3,81 +3,13 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
 
-from app.schemas.node import Node as NodeSchema
-from app.schemas.edge import Edge as EdgeSchema
-from app.schemas.graphdata import GraphData
-from app.models.node import Node
-from app.models.edge import Edge
-# from app.utils.auth import get_current_active_user, User
-
-from app.schemas.event import Event as EventSchema  # new
-from app.controllers.graph import GraphController # new
-from app.ext.error import RequestParamsError # new
-from app.controllers.auth import AuthController, get_current_active_user, User # new
+from app.schemas.event import Event as EventSchema  
+from app.controllers.graph import GraphController 
+from app.ext.error import RequestParamsError
+from app.controllers.auth import AuthController
 from app.models.user import UserModel
 
 router = APIRouter()
-
-@router.get("/get_hourly_graphs", response_model=GraphData)
-async def get_hourly_graphs(
-    start_time: datetime, 
-    end_time: datetime, 
-    current_user: User = Depends(get_current_active_user)
-):
-    """Retrieve nodes and edges within the given time range."""
-    nodes = Node.get_nodes_by_time_range(start_time, end_time)
-    edges = Edge.get_edges_by_time_range(start_time, end_time)
-    return {"nodes": nodes, "edges": edges}
-
-@router.post("/node/", response_model=dict)
-async def create_node(
-    node: NodeSchema, 
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create a new node."""
-    try:
-        Node.save(node.dict())
-        return {"status": "node created"}
-    except Exception as e:
-        logging.error(f"Error in create_node: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-@router.post("/edge/", response_model=dict)
-async def create_edge(
-    edge: EdgeSchema, 
-    current_user: User = Depends(get_current_active_user)
-):
-    """Create a new edge."""
-    try:
-        Edge.save(edge.dict())
-        return {"status": "edge created"}
-    except Exception as e:
-        logging.error(f"Error in create_edge: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-# Additional functions can be added here
-@router.get("/nodes", response_model=list[NodeSchema])
-async def get_all_nodes(current_user: User = Depends(get_current_active_user)):
-    """Retrieve all nodes."""
-    try:
-        nodes = Node.get_all_nodes()
-        return nodes
-    except Exception as e:
-        logging.error(f"Error in get_all_nodes: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
-@router.get("/edges", response_model=list[EdgeSchema])
-async def get_all_edges(current_user: User = Depends(get_current_active_user)):
-    """Retrieve all edges."""
-    try:
-        edges = Edge.get_all_edges()
-        return edges
-    except Exception as e:
-        logging.error(f"Error in get_all_edges: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-#----------------------------------------------------------------------------------------------------
 
 
 @router.post("/data/")

@@ -37,3 +37,6 @@ async def user_disabled_error_handler(request: Request, exc: UserDisabledError):
 
 async def invalid_token_error_handler(request: Request, exc: InvalidTokenError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
+
+
+
