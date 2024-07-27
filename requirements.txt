@@ -3,3 +3,4 @@ uvicorn
 elasticsearch
 python-dotenv
 passlib[bcrypt]
+python-jose[cryptography]

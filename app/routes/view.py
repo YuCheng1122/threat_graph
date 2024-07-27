@@ -17,10 +17,11 @@ async def receive_traffic_and_alert_date(event: EventSchema, current_user: UserM
     '''
         Receives and stores alert or traffic event data.
     '''
+    device_id = current_user.username  # Use username as device_id
     if event.event_type == "alert":
-        await GraphController.save_alert_data(event=event, username=current_user.username)
+        await GraphController.save_alert_data(event=event, device_id=device_id)
     elif event.event_type == "flow":
-        await GraphController.save_flow_data(event=event, username=current_user.username)
+        await GraphController.save_flow_data(event=event, device_id=device_id)
     return JSONResponse(status_code=200, content={'success': True, "message": "Event stored successfully"})
 
 
