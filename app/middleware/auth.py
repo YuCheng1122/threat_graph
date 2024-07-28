@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 import logging
+from app.models.user_db import UserModel  # Import your UserModel
 
 # Load environment variables
 load_dotenv()
@@ -27,22 +28,21 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         try:
             payload = jwt.decode(token.split(" ")[1], self.secret_key, algorithms=[self.algorithm])
-            user_id = payload.get("sub")
+            username = payload.get("sub")
             
             # Ensure user exists
-            # user = get_user_by_id(user_id)
-            # if not user:
-            #     logging.error("User not found")
-            #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+            user = UserModel.get_user(username)
+            if not user:
+                logging.error("User not found")
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
 
-            # # Ensure user is not deactivated
-            # if user.is_deactivated:
-            #     logging.error("User is deactivated")
-            #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is deactivated")
+            # Ensure user is not disabled
+            if user.disabled:
+                logging.error("User is disabled")
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is disabled")
 
             # Fetch user param from request
-            # request.state.user = user
-            # request.state.user = payload.get("sub")
+            request.state.user = user
         except JWTError as e:
             logging.error(f"JWT error: {e}")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Could not validate credentials")

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import os
 import logging
 
-from app.models.user import UserModel
+from app.models.user_db import UserModel
 from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
 
 # Load environment variables
@@ -63,57 +63,50 @@ class AuthController:
 
     @classmethod
     def create_user(cls, username: str, password: str):
-      """
-      Create a user in the database.
-      """
-      try:
-        user = UserModel.get_user(username)
-        if user:
-          raise UserExistedError(f"User {username} already exists")
-        else:
-          hashed_password = cls.get_password_hash(password)
-          UserModel.create_user(username, hashed_password)
+        """
+        Create a user in the database.
+        """
+        try:
+            user = UserModel.get_user(username)
+            if user:
+                raise UserExistedError(f"User {username} already exists")
+            else:
+                hashed_password = cls.get_password_hash(password)
+                UserModel.create_user(username, hashed_password)
 
-      except UserExistedError as e:
-        raise e
-      
-      except Exception as e:
-        raise AuthControllerError(f"An error occurred: {e}")
+        except UserExistedError as e:
+            raise e
+        except Exception as e:
+            raise AuthControllerError(f"An error occurred: {e}")
 
     @classmethod
     def authenticate_user(cls, username: str, password: str):
+        try:
+            user = UserModel.get_user(username)
 
-      try:
-          # logging.info(f"Authenticating user {username}")
-          user = UserModel.get_user(username)
+            if not user:
+                raise UserNotFoundError(f"User {username} not found")
 
-          if not user:
-              raise UserNotFoundError(f"User {username} not found")
+            if not cls.verify_password(password, user.password):
+                raise InvalidPasswordError(f"Invalid password for user {username}")
+            
+            if user.disabled:
+                raise UserDisabledError(f"User {username} is disabled")
 
-          if not cls.verify_password(password, user.password):
-              raise InvalidPasswordError(f"Invalid password for user {username}")
-          
-          if user.disabled:
-              raise UserDisabledError(f"User {username} is disabled")
-
-          access_token = cls.create_access_token(data={"sub": user.username})
-          return {"access_token": access_token, "token_type": "bearer"}
+            access_token = cls.create_access_token(data={"sub": user.username})
+            return {"access_token": access_token, "token_type": "bearer"}
            
-
-      except UserNotFoundError as e:
-          logging.error(f"User not found: {e}")
-          raise e  
-      
-      except InvalidPasswordError as e:
-          logging.error(f"Invalid password: {e}")
-          raise e
-
-      except UserDisabledError as e:
-          raise e
-
-      except Exception as e:
-          logging.error(f"An error occurred: {e}")
-          raise AuthControllerError(f"An error occurred: {e}")
+        except UserNotFoundError as e:
+            logging.error(f"User not found: {e}")
+            raise e  
+        except InvalidPasswordError as e:
+            logging.error(f"Invalid password: {e}")
+            raise e
+        except UserDisabledError as e:
+            raise e
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            raise AuthControllerError(f"An error occurred: {e}")
 
     @classmethod
     async def get_current_user(cls, token: str = Depends(oauth2_scheme)) -> 'UserModel':
@@ -121,19 +114,18 @@ class AuthController:
         logging.info(f"Getting current user from token")
 
         try:
-          payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-          username: str = payload.get("sub")
-          if username is None:
-            raise InvalidTokenError()
+            payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
+            username: str = payload.get("sub")
+            if username is None:
+                raise InvalidTokenError()
 
-          user = UserModel.get_user(username)
-          if user is None or user.disabled:
-            raise InvalidTokenError()
-          return user
+            user = UserModel.get_user(username)
+            if user is None or user.disabled:
+                raise InvalidTokenError()
+            return user
 
         except JWTError:
-          raise InvalidTokenError()
+            raise InvalidTokenError()
         except Exception as e:
-          logging.error(f"An error occurred: {e}")
-          raise AuthControllerError(f"An error occurred: {e}")
-
+            logging.error(f"An error occurred: {e}")
+            raise AuthControllerError(f"An error occurred: {e}")
