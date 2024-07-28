@@ -15,14 +15,13 @@ async function login() {
   });
 
   const data = await response.json();
+  console.log('Login response:', data); // Debug log
 
   if (response.ok) {
     alert('Login successful');
-    // Handle successful login
     document.getElementById('login-form').style.display = 'none';
     document.getElementById('controls').style.display = 'block';
     document.getElementById('main').style.display = 'block';
-    // Store the token in local storage
     localStorage.setItem('token', data.content.access_token);
   } else {
     alert(`Login failed: ${data.message}`);
@@ -34,17 +33,22 @@ async function fetchData() {
   const startTime = document.getElementById('start-time').value;
   const endTime = document.getElementById('end-time').value;
 
+  console.log('Fetching data with token:', token); // Debug log
+  console.log('Fetching data with startTime:', startTime, 'and endTime:', endTime); // Debug log
+
   const response = await fetch(`/api/graph_data?start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/json'
     }
   });
 
-  if (response.ok) {
-    const data = await response.json();
-    const cleanedData = cleanData(data);
+  const data = await response.json();
+  console.log('Fetched data:', data); // Debug log
+
+  if (response.ok && data.success) {
+    const cleanedData = cleanData(data.content);
     renderGraph(cleanedData);
   } else {
     alert('Failed to fetch data');
