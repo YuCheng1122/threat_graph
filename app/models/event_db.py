@@ -2,10 +2,22 @@ from datetime import datetime
 from typing import Optional, List, Dict
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
+import os
+from dotenv import load_dotenv, find_dotenv
+import logging
 
 from ..schemas.event import Event as EventSchema
 from ..ext.error import ElasticsearchError, NotFoundUserError
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, filename='app_errors.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load environment variables
+try:
+    load_dotenv(find_dotenv())
+except Exception as e:
+    logging.error(f"Error loading .env file: {str(e)}")
+    raise
 
 class EventModel:
 
@@ -53,32 +65,33 @@ class EventModel:
     @staticmethod
     async def save_to_elasticsearch(event: 'EventModel', username: str):
         """Save an Event object to Elasticsearch."""
-        es = Elasticsearch(
-            [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
-            http_auth=('elastic', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
-        )
-        index = f"{datetime.now().strftime('%Y_%m')}_events"
-
         try:
+            es = Elasticsearch(
+                [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
+                http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
+            )
+            index = f"{datetime.now().strftime('%Y_%m')}_events"
+
             # Save event to Elasticsearch with device_id as username
             event_data = event.to_dict()
             event_data["device_id"] = username  # Add device_id as username
             es.index(index=index, body=event_data)
 
         except Exception as e:
+            logging.error(f"Elasticsearch error while saving event: {str(e)}")
             raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
 
     @staticmethod
     async def load_from_elasticsearch_with_time_range(username: str, start_time: datetime, end_time: datetime) -> List[Dict]:
         """Load Events from Elasticsearch and return a list of event dictionaries."""
-        es = Elasticsearch(
-            [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
-            http_auth=('elastic', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
-        )
-        index = f"{datetime.now().strftime('%Y_%m')}_events"
-        result = []
-
         try:
+            es = Elasticsearch(
+                [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
+                http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
+            )
+            index = f"{datetime.now().strftime('%Y_%m')}_events"
+            result = []
+
             # Query Elasticsearch
             query = {
                 "query": {
@@ -111,5 +124,9 @@ class EventModel:
 
             return result
 
+        except ValueError as e:
+            logging.error(f"ValueError: {str(e)}")
+            raise ElasticsearchError(f"ValueError: {str(e)}", 500)
         except Exception as e:
+            logging.error(f"Elasticsearch error while loading events: {str(e)}")
             raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
