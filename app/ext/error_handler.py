@@ -1,6 +1,7 @@
-from fastapi import Request
+from fastapi import Request, FastAPI
 from fastapi.responses import JSONResponse
-from app.ext.error import GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError
+from app.ext.error import GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError, UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError, UnauthorizedError
+
 
 async def graph_controller_error_handler(request: Request, exc: GraphControllerError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
@@ -39,4 +40,23 @@ async def invalid_token_error_handler(request: Request, exc: InvalidTokenError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
 
 
+def add_error_handlers(app: FastAPI):
+    app.add_exception_handler(GraphControllerError, graph_controller_error_handler)
+    app.add_exception_handler(NotFoundUserError, not_found_user_error_handler)
+    app.add_exception_handler(ElasticsearchError, elasticsearch_error_handler)
+    app.add_exception_handler(RequestParamsError, request_params_error_handler)
+    app.add_exception_handler(UserNotFoundError, user_not_found_error_handler)
+    app.add_exception_handler(AuthControllerError, auth_controller_error_handler)
+    app.add_exception_handler(InvalidPasswordError, invalid_password_error_handler)
+    app.add_exception_handler(UserExistedError, user_existed_error_handler)
+    app.add_exception_handler(UserDisabledError, user_disabled_error_handler)
+    app.add_exception_handler(InvalidTokenError, invalid_token_error_handler)
+    app.add_exception_handler(UnauthorizedError, unauthorized_error_handler)
+    
+# ----------------------------------------------------------------------------------------------------------- Wazuh 
 
+async def unauthorized_error_handler(request: Request, exc: UnauthorizedError):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"success": False, "message": exc.message}
+    )

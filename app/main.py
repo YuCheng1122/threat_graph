@@ -8,19 +8,22 @@ from pathlib import Path
 
 from app.routes.view import router as view_router
 from app.routes.auth import router as auth_router
-from app.ext.error import (
-    GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError, UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
-)
-from app.ext.error_handler import (
-    graph_controller_error_handler, not_found_user_error_handler, elasticsearch_error_handler, request_params_error_handler, user_not_found_error_handler, auth_controller_error_handler, invalid_password_error_handler, user_existed_error_handler, user_disabled_error_handler, invalid_token_error_handler
-)
-from fastapi.middleware.cors import CORSMiddleware  # Import CORS middleware
-from app.middleware.auth import AuthMiddleware  # Import your AuthMiddleware
+from app.routes.wazuh import router as wazuh_router  # Changed from auth_router to wazuh_router
+from app.ext.error_handler import add_error_handlers
+from fastapi.middleware.cors import CORSMiddleware  
+from app.middleware.auth import AuthMiddleware
 
 # Load environment variables
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(
+    title="AIXSOAR ATH API",
+    description="API description",
+    version="1.0.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -40,20 +43,12 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 
 # Include the API router
-app.include_router(view_router, prefix="/api")
+app.include_router(view_router, prefix="/api/view")
 app.include_router(auth_router, prefix="/api/auth")
+app.include_router(wazuh_router, prefix="/api/wazuh") 
 
 # Include error handlers
-app.add_exception_handler(GraphControllerError, graph_controller_error_handler)
-app.add_exception_handler(NotFoundUserError, not_found_user_error_handler)
-app.add_exception_handler(ElasticsearchError, elasticsearch_error_handler)
-app.add_exception_handler(RequestParamsError, request_params_error_handler)
-app.add_exception_handler(UserNotFoundError, user_not_found_error_handler)
-app.add_exception_handler(AuthControllerError, auth_controller_error_handler)
-app.add_exception_handler(InvalidPasswordError, invalid_password_error_handler)
-app.add_exception_handler(UserExistedError, user_existed_error_handler)
-app.add_exception_handler(UserDisabledError, user_disabled_error_handler)
-app.add_exception_handler(InvalidTokenError, invalid_token_error_handler)
+add_error_handlers(app)
 
 # Serve the HTML file at the root URL
 @app.get("/", response_class=HTMLResponse)

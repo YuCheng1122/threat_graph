@@ -36,7 +36,7 @@ async function fetchData() {
   console.log('Fetching data with token:', token); // Debug log
   console.log('Fetching data with startTime:', startTime, 'and endTime:', endTime); // Debug log
 
-  const response = await fetch(`/api/graph_data?start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}`, {
+  const response = await fetch(`/api/view/graph_data?start_time=${encodeURIComponent(startTime)}&end_time=${encodeURIComponent(endTime)}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,

@@ -82,51 +82,51 @@ class EventModel:
             raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
 
     @staticmethod
-    async def load_from_elasticsearch_with_time_range(username: str, start_time: datetime, end_time: datetime) -> List[Dict]:
-        """Load Events from Elasticsearch and return a list of event dictionaries."""
-        try:
-            es = Elasticsearch(
-                [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
-                http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
-            )
-            index = f"{datetime.now().strftime('%Y_%m')}_events"
-            result = []
+    async def load_group_events_from_elasticsearch(group: str, start_time: datetime, end_time: datetime) -> List[Dict]:
+            try:
+                es = Elasticsearch(
+                    [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
+                    http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
+                )
+                index = f"{datetime.now().strftime('%Y_%m')}_agents_data"
+                result = []
 
-            # Query Elasticsearch
-            query = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "range": {
-                                    "timestamp": {
-                                        "gte": start_time.isoformat(),
-                                        "lte": end_time.isoformat()
+                query = {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "range": {
+                                        "timestamp": {
+                                            "gte": start_time.isoformat(),
+                                            "lte": end_time.isoformat()
+                                        }
+                                    }
+                                },
+                                {
+                                    "term": {
+                                        "group": group
+                                    }
+                                },
+                                {
+                                    "term": {
+                                        "wazuh_data_type": "wazuh_events"
                                     }
                                 }
-                            },
-                            {
-                                "term": {
-                                    "device_id": username  # Filter by device_id which is username
-                                }
-                            }
-                        ]
-                    }
-                },
-                "size": 10000
-            }
+                            ]
+                        }
+                    },
+                    "size": 10000
+                }
 
-            response = es.search(index=index, body=query)
-            hits = response['hits']['hits']
+                response = es.search(index=index, body=query)
+                hits = response['hits']['hits']
 
-            for hit in hits:
-                result.append(hit['_source'])
+                for hit in hits:
+                    result.append(hit['_source'])
 
-            return result
+                return result
 
-        except ValueError as e:
-            logging.error(f"ValueError: {str(e)}")
-            raise ElasticsearchError(f"ValueError: {str(e)}", 500)
-        except Exception as e:
-            logging.error(f"Elasticsearch error while loading events: {str(e)}")
-            raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
+            except Exception as e:
+                logging.error(f"Elasticsearch error while loading group events: {str(e)}")
+                raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)

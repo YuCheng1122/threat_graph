@@ -74,4 +74,9 @@ class UserDisabledError(BaseCustomError):
 class InvalidTokenError(BaseCustomError):
   def __init__(self, message='Invalid token', status_code=400):
         super().__init__(message, status_code)
-
+        
+# -------------------------------------------------------------------------------- Update Wazuh_info api 
+class UnauthorizedError(BaseCustomError):
+    """Raised when a user attempts to access or modify data they're not authorized for"""
+    def __init__(self, message, status_code=403):
+        super().__init__(message, status_code)
