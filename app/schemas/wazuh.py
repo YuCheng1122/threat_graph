@@ -11,6 +11,7 @@ class Agent(BaseModel):
     last_keep_alive: datetime = Field(..., example="2023-07-30T12:00:00Z", description="Last keep alive timestamp")
     os: str = Field(..., example="Ubuntu", description="Operating system of the agent")
     os_version: str = Field(..., example="20.04", description="Version of the operating system")
+    group_name: str = Field(..., example="group1", description="Name of the group this agent belongs to")
 
 class WazuhEvent(BaseModel):
     timestamp: datetime = Field(..., example="2023-07-30T12:05:00Z", description="Timestamp of the event")
@@ -22,13 +23,7 @@ class WazuhEvent(BaseModel):
     rule_mitre_id: Optional[str] = Field(None, example="T1078", description="MITRE ATT&CK technique ID")
     rule_mitre_tactic: Optional[List[str]] = Field(None, example=["Persistence"], description="MITRE ATT&CK tactic")
     rule_mitre_technique: Optional[str] = Field(None, example="Valid Accounts", description="MITRE ATT&CK technique")
-    event_type: str = Field(..., example="alert", description="Type of the event")
-    src_ip: Optional[str] = Field(None, example="192.168.1.100", description="Source IP address")
-    dest_ip: Optional[str] = Field(None, example="10.0.0.1", description="Destination IP address")
-    src_port: Optional[int] = Field(None, example=12345, description="Source port")
-    dest_port: Optional[int] = Field(None, example=80, description="Destination port")
-    proto: Optional[str] = Field(None, example="TCP", description="Protocol used")
-    app_proto: Optional[str] = Field(None, example="HTTP", description="Application protocol")
+    group_name: str = Field(..., example="group1", description="Name of the group this event belongs to")
 
 class AgentInfoRequest(BaseModel):
     agent: Agent
@@ -43,13 +38,15 @@ class AgentInfoRequest(BaseModel):
                     "ip": "192.168.1.100",
                     "agent_status": "Active",
                     "status_code": 0,
-                    "last_keep_alive": "2023-07-30T12:00:00Z",
+                    "last_keep_alive": "2023-07-30T12:00:00+00:00",
                     "os": "Ubuntu",
-                    "os_version": "20.04"
+                    "os_version": "20.04",
+                    "group_name": "group1",
+                    "wazuh_data_type": "agent_info"
                 },
                 "events": [
                     {
-                        "timestamp": "2023-07-30T12:05:00Z",
+                        "timestamp": "2023-07-30T12:05:00+00:00",
                         "agent_id": "001",
                         "agent_ip": "192.168.1.100",
                         "rule_description": "File added to the system.",
@@ -58,13 +55,8 @@ class AgentInfoRequest(BaseModel):
                         "rule_mitre_id": "T1078",
                         "rule_mitre_tactic": ["Persistence"],
                         "rule_mitre_technique": "Valid Accounts",
-                        "event_type": "alert",
-                        "src_ip": "192.168.1.100",
-                        "dest_ip": "10.0.0.1",
-                        "src_port": 12345,
-                        "dest_port": 80,
-                        "proto": "TCP",
-                        "app_proto": "HTTP"
+                        "group_name": "group1",
+                        "wazuh_data_type": "wazuh_events"
                     }
                 ]
             }
@@ -90,7 +82,7 @@ class GetAgentInfoByTimeResponse(BaseModel):
                     "last_keep_alive": "2023-07-30T12:00:00Z",
                     "os": "Ubuntu",
                     "os_version": "20.04",
-                    "groups": "testuser",
+                    "group_name": "group1",
                     "wazuh_data_type": "agent_info"
                 },
                 "events": [
@@ -104,14 +96,7 @@ class GetAgentInfoByTimeResponse(BaseModel):
                         "rule_mitre_id": "T1078",
                         "rule_mitre_tactic": ["Persistence"],
                         "rule_mitre_technique": "Valid Accounts",
-                        "event_type": "alert",
-                        "src_ip": "192.168.1.100",
-                        "dest_ip": "10.0.0.1",
-                        "src_port": 12345,
-                        "dest_port": 80,
-                        "proto": "TCP",
-                        "app_proto": "HTTP",
-                        "group": "testuser",
+                        "group_name": "group1",
                         "wazuh_data_type": "wazuh_events"
                     }
                 ]
@@ -139,7 +124,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "last_keep_alive": "2023-07-30T12:00:00Z",
                         "os": "Ubuntu",
                         "os_version": "20.04",
-                        "groups": "testuser",
+                        "group_name": "group1",
                         "wazuh_data_type": "agent_info"
                     },
                     {
@@ -151,7 +136,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "last_keep_alive": "2023-07-30T12:00:00Z",
                         "os": "CentOS",
                         "os_version": "7",
-                        "groups": "testuser",
+                        "group_name": "group1",
                         "wazuh_data_type": "agent_info"
                     }
                 ],
@@ -166,14 +151,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "rule_mitre_id": "T1078",
                         "rule_mitre_tactic": ["Persistence"],
                         "rule_mitre_technique": "Valid Accounts",
-                        "event_type": "alert",
-                        "src_ip": "192.168.1.100",
-                        "dest_ip": "10.0.0.1",
-                        "src_port": 12345,
-                        "dest_port": 80,
-                        "proto": "TCP",
-                        "app_proto": "HTTP",
-                        "group": "testuser",
+                        "group_name": "group1",
                         "wazuh_data_type": "wazuh_events"
                     },
                     {
@@ -183,14 +161,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "rule_description": "Network connection detected",
                         "rule_level": 2,
                         "rule_id": "5001",
-                        "event_type": "flow",
-                        "src_ip": "192.168.1.101",
-                        "dest_ip": "10.0.0.2",
-                        "src_port": 54321,
-                        "dest_port": 443,
-                        "proto": "TCP",
-                        "app_proto": "HTTPS",
-                        "group": "testuser",
+                        "group_name": "group1",
                         "wazuh_data_type": "wazuh_events"
                     }
                 ]

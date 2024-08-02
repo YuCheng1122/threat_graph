@@ -8,9 +8,10 @@ from app.ext.error import UserExistedError, UserNotFoundError, InvalidPasswordEr
 
 router = APIRouter()
 
-@router.post("/token")
+@router.post("/login")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     try:
+        print(f"DEBUG: form_data - Username: {form_data.username}, Password: {form_data.password}")
         jwt_token = AuthController.authenticate_user(form_data.username, form_data.password)
         return JSONResponse(status_code=200, content={"success": True, "content": jwt_token, "message": "Login successfully"})
     except UserNotFoundError:

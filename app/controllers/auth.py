@@ -85,6 +85,7 @@ class AuthController:
             user = UserModel.get_user(username)
 
             if not user:
+                print(f"DEBUG: User not found in DB: {username}")
                 raise UserNotFoundError(f"User {username} not found")
 
             if not cls.verify_password(password, user.password):
@@ -115,7 +116,8 @@ class AuthController:
 
         try:
             payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-            username: str = payload.get("sub")
+            username = payload.get("sub")
+
             if username is None:
                 raise InvalidTokenError()
 

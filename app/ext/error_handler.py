@@ -1,7 +1,30 @@
 from fastapi import Request, FastAPI
 from fastapi.responses import JSONResponse
-from app.ext.error import GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError, UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError, UnauthorizedError
+from app.ext.error import (
+    GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError,
+    UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError,
+    UserDisabledError, InvalidTokenError, UnauthorizedError, BaseCustomError
+)
 
+async def custom_error_handler(request: Request, exc: Exception):
+    if isinstance(exc, (GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError,
+                        UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError,
+                        UserDisabledError, InvalidTokenError, UnauthorizedError, PermissionError)):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"success": False, "message": exc.message}
+        )
+    # General exception handler
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "An unexpected error occurred."}
+    )
+
+async def general_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"success": False, "message": "An unexpected error occurred."}
+    )
 
 async def graph_controller_error_handler(request: Request, exc: GraphControllerError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
@@ -52,6 +75,7 @@ def add_error_handlers(app: FastAPI):
     app.add_exception_handler(UserDisabledError, user_disabled_error_handler)
     app.add_exception_handler(InvalidTokenError, invalid_token_error_handler)
     app.add_exception_handler(UnauthorizedError, unauthorized_error_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
     
 # ----------------------------------------------------------------------------------------------------------- Wazuh 
 

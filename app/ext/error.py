@@ -75,6 +75,11 @@ class InvalidTokenError(BaseCustomError):
   def __init__(self, message='Invalid token', status_code=400):
         super().__init__(message, status_code)
         
+class PermissionError(BaseCustomError):
+    """Raised when a user doesn't have permission to perform an action"""
+    def __init__(self, message="Permission denied", status_code=403):
+        super().__init__(message, status_code)
+        
 # -------------------------------------------------------------------------------- Update Wazuh_info api 
 class UnauthorizedError(BaseCustomError):
     """Raised when a user attempts to access or modify data they're not authorized for"""
