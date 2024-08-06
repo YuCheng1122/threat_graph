@@ -7,7 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 import logging
 
 from ..schemas.event import Event as EventSchema
-from ..ext.error import ElasticsearchError, NotFoundUserError
+from ..ext.error import ElasticsearchError, UserNotFoundError
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, filename='app_errors.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
@@ -83,50 +83,51 @@ class EventModel:
 
     @staticmethod
     async def load_group_events_from_elasticsearch(group: str, start_time: datetime, end_time: datetime) -> List[Dict]:
-            try:
-                es = Elasticsearch(
-                    [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
-                    http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
-                )
-                index = f"{datetime.now().strftime('%Y_%m')}_agents_data"
-                result = []
+        try:
+            es = Elasticsearch(
+                [{'host': os.getenv('ES_HOST'), 'port': int(os.getenv('ES_PORT')), 'scheme': os.getenv('ES_SCHEME')}],
+                http_auth=(os.getenv('ES_USER'), os.getenv('ES_PASSWORD'))
+            )
+            index = f"{datetime.now().strftime('%Y_%m')}_agents_data"
+            result = []
 
-                query = {
-                    "query": {
-                        "bool": {
-                            "must": [
-                                {
-                                    "range": {
-                                        "timestamp": {
-                                            "gte": start_time.isoformat(),
-                                            "lte": end_time.isoformat()
-                                        }
-                                    }
-                                },
-                                {
-                                    "term": {
-                                        "group": group
-                                    }
-                                },
-                                {
-                                    "term": {
-                                        "wazuh_data_type": "wazuh_events"
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "range": {
+                                    "timestamp": {
+                                        "gte": start_time.isoformat(),
+                                        "lte": end_time.isoformat()
                                     }
                                 }
-                            ]
-                        }
-                    },
-                    "size": 10000
-                }
+                            },
+                            {
+                                "term": {
+                                    "group": group
+                                }
+                            },
+                            {
+                                "term": {
+                                    "wazuh_data_type": "wazuh_events"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "size": 10000
+            }
 
-                response = es.search(index=index, body=query)
-                hits = response['hits']['hits']
+            response = es.search(index=index, body=query)
+            hits = response['hits']['hits']
 
-                for hit in hits:
-                    result.append(hit['_source'])
+            for hit in hits:
+                result.append(hit['_source'])
 
-                return result
+            return result
 
-            except Exception as e:
-                logging.error(f"Elasticsearch error while loading group events: {str(e)}")
-                raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
+        except Exception as e:
+            logging.error(f"Elasticsearch error while loading group events: {str(e)}")
+            raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
+

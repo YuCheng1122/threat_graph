@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from datetime import datetime
 import logging
+import traceback
 
 from app.schemas.event import Event as EventSchema
 from app.controllers.graph import GraphController 
@@ -25,6 +26,7 @@ async def receive_traffic_and_alert_date(
     elif event.event_type == "flow":
         await GraphController.save_flow_data(event=event, device_id=device_id)
     return JSONResponse(status_code=200, content={'success': True, "message": "Event stored successfully"})
+
 
 @router.get("/graph_data")
 async def get_traffic_data(
@@ -51,9 +53,11 @@ async def get_traffic_data(
         return JSONResponse(status_code=200, content={'success': True, 'content': graph_data})
     
     except HTTPException as e:
+        print(traceback.format_exc())
         logging.error(f"HTTPException: {str(e)}")
         raise e
     except Exception as e:
+        print(traceback.format_exc())
         logging.error(f"Unhandled exception: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 

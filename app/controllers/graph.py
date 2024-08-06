@@ -1,13 +1,13 @@
 from app.models.event_db import EventModel
 from datetime import datetime
-from app.ext.error import GraphControllerError, NotFoundUserError, ElasticsearchError
+from app.ext.error import GraphControllerError, ElasticsearchError
 
 class GraphController:
 
     @staticmethod
     async def get_graph_data(start_time: datetime, end_time: datetime, username: str):
         try:
-            datas = await EventModel.load_from_elasticsearch_with_time_range(username=username, start_time=start_time, end_time=end_time)
+            datas = await EventModel.load_group_events_from_elasticsearch(group=username, start_time=start_time, end_time=end_time)
 
             stage_ip = {}
             nodes = []

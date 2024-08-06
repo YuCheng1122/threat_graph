@@ -1,15 +1,17 @@
 from fastapi import Request, FastAPI
 from fastapi.responses import JSONResponse
 from app.ext.error import (
-    GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError,
+    GraphControllerError, ElasticsearchError, RequestParamsError,
     UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError,
-    UserDisabledError, InvalidTokenError, UnauthorizedError, BaseCustomError
+    UserDisabledError, InvalidTokenError, UnauthorizedError, PermissionError
 )
 
+# Base custom error handler
 async def custom_error_handler(request: Request, exc: Exception):
-    if isinstance(exc, (GraphControllerError, NotFoundUserError, ElasticsearchError, RequestParamsError,
-                        UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError,
-                        UserDisabledError, InvalidTokenError, UnauthorizedError, PermissionError)):
+    if isinstance(exc, (GraphControllerError, ElasticsearchError, RequestParamsError,
+                        UserNotFoundError, AuthControllerError, InvalidPasswordError, 
+                        UserExistedError, UserDisabledError, InvalidTokenError, 
+                        UnauthorizedError, PermissionError)):
         return JSONResponse(
             status_code=exc.status_code,
             content={"success": False, "message": exc.message}
@@ -29,7 +31,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 async def graph_controller_error_handler(request: Request, exc: GraphControllerError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
 
-async def not_found_user_error_handler(request: Request, exc: NotFoundUserError):
+async def not_found_user_error_handler(request: Request, exc: UserNotFoundError):
     return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
 
 async def elasticsearch_error_handler(request: Request, exc: ElasticsearchError):
@@ -64,18 +66,19 @@ async def invalid_token_error_handler(request: Request, exc: InvalidTokenError):
 
 
 def add_error_handlers(app: FastAPI):
-    app.add_exception_handler(GraphControllerError, graph_controller_error_handler)
-    app.add_exception_handler(NotFoundUserError, not_found_user_error_handler)
-    app.add_exception_handler(ElasticsearchError, elasticsearch_error_handler)
-    app.add_exception_handler(RequestParamsError, request_params_error_handler)
-    app.add_exception_handler(UserNotFoundError, user_not_found_error_handler)
-    app.add_exception_handler(AuthControllerError, auth_controller_error_handler)
-    app.add_exception_handler(InvalidPasswordError, invalid_password_error_handler)
-    app.add_exception_handler(UserExistedError, user_existed_error_handler)
-    app.add_exception_handler(UserDisabledError, user_disabled_error_handler)
-    app.add_exception_handler(InvalidTokenError, invalid_token_error_handler)
-    app.add_exception_handler(UnauthorizedError, unauthorized_error_handler)
-    app.add_exception_handler(Exception, general_exception_handler)
+    # Add handlers for all custom exceptions
+    custom_exceptions = [
+        GraphControllerError, ElasticsearchError, RequestParamsError,
+        UserNotFoundError, AuthControllerError, InvalidPasswordError, 
+        UserExistedError, UserDisabledError, InvalidTokenError, 
+        UnauthorizedError, PermissionError
+    ]
+    
+    for exception in custom_exceptions:
+        app.add_exception_handler(exception, custom_error_handler)
+    
+    # Add general exception handler
+    app.add_exception_handler(Exception, custom_error_handler)
     
 # ----------------------------------------------------------------------------------------------------------- Wazuh 
 
