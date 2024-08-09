@@ -136,49 +136,92 @@ class AgentModel:
             raise
 
     @staticmethod
-    @handle_es_exceptions
-    async def load_from_elasticsearch(agent_id: str) -> Optional[Dict]:
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"agent_id": agent_id}},
-                        {"term": {"wazuh_data_type": "agent_info"}},
-                        {"term": {"agent_status": "disconnected"}} 
-                    ]
-                }
-            }
-        }
-        response = es.search(index=get_index_name(), body=query)
-        hits = response['hits']['hits']
-        return hits[0]['_source'] if hits else None
-
-    @staticmethod
-    @handle_es_exceptions
-    async def load_all_agents() -> List[Dict]:
+    async def load_all_agents():
+        """
+        Load all agents from Elasticsearch.
+        """
         query = {
             "query": {"term": {"wazuh_data_type": "agent_info"}},
-            "size": MAX_RESULTS
+            "size": 10000  # Adjust this value based on your needs
         }
-        response = es.search(index=get_index_name(), body=query)
-        return [hit['_source'] for hit in response['hits']['hits']]
-
+        try:
+            response = es.search(index=get_index_name(), body=query)
+            agents = [hit['_source'] for hit in response['hits']['hits']]
+            logging.info(f"Loaded {len(agents)} agents from Elasticsearch")
+            return agents
+        except Exception as e:
+            logging.error(f"Error loading all agents: {str(e)}")
+            raise
+    
     @staticmethod
-    @handle_es_exceptions
-    async def load_agents_with_time_range(start_time: datetime, end_time: datetime) -> List[Dict]:
+    async def load_agents_by_groups(group_names):
+        """
+        Load agents from Elasticsearch filtered by group names.
+        """
         query = {
             "query": {
                 "bool": {
                     "must": [
-                        {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
-                        {"term": {"wazuh_data_type": "agent_info"}}
+                        {"term": {"wazuh_data_type": "agent_info"}},
+                        {"terms": {"group_name": group_names}}
                     ]
                 }
             },
-            "size": MAX_RESULTS
+            "size": 10000  # Adjust this value based on your needs
         }
-        response = es.search(index=get_index_name(), body=query)
-        return [hit['_source'] for hit in response['hits']['hits']]
+        try:
+            response = es.search(index=get_index_name(), body=query)
+            agents = [hit['_source'] for hit in response['hits']['hits']]
+            logging.info(f"Loaded {len(agents)} agents from Elasticsearch for groups: {group_names}")
+            return agents
+        except Exception as e:
+            logging.error(f"Error loading agents by groups: {str(e)}")
+            raise
+
+    # @staticmethod
+    # @handle_es_exceptions
+    # async def load_from_elasticsearch(agent_id: str) -> Optional[Dict]:
+    #     query = {
+    #         "query": {
+    #             "bool": {
+    #                 "must": [
+    #                     {"term": {"agent_id": agent_id}},
+    #                     {"term": {"wazuh_data_type": "agent_info"}},
+    #                     {"term": {"agent_status": "disconnected"}} 
+    #                 ]
+    #             }
+    #         }
+    #     }
+    #     response = es.search(index=get_index_name(), body=query)
+    #     hits = response['hits']['hits']
+    #     return hits[0]['_source'] if hits else None
+
+    # @staticmethod
+    # @handle_es_exceptions
+    # async def load_all_agents() -> List[Dict]:
+    #     query = {
+    #         "query": {"term": {"wazuh_data_type": "agent_info"}},
+    #         "size": MAX_RESULTS
+    #     }
+    #     response = es.search(index=get_index_name(), body=query)
+    #     return [hit['_source'] for hit in response['hits']['hits']]
+
+    # @staticmethod
+    # @handle_es_exceptions
+    # async def load_agents_with_time_range(start_time: datetime, end_time: datetime) -> List[Dict]:
+    #     query = {
+    #         "query": {
+    #             "bool": {
+    #                 "must": [
+    #                     {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
+    #                     {"term": {"wazuh_data_type": "agent_info"}}
+    #                 ]
+    #             }
+    #         },
+    #         "size": MAX_RESULTS
+    #     }
+    #     response = es.search(index=get_index_name(), body=query)
+    #     return [hit['_source'] for hit in response['hits']['hits']]
 
 class EventModel:
     """

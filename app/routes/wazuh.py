@@ -2,15 +2,17 @@ import traceback
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Request
 from fastapi.exceptions import RequestValidationError
 from app.schemas.wazuh import (
-    AgentInfoRequest, AgentInfoResponse, 
+    AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse, 
     GetAgentInfoByTimeResponse, GetAgentInfoByGroupResponse, 
-    GetAgentInfoByGroupRequest
+    GetAgentInfoByGroupRequest,
+    AgentSummaryResponse
 )
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController
 from app.models.user_db import UserModel
-from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError
+from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError, UserNotFoundError
 from datetime import datetime
+from typing import Dict
 import logging
 
 router = APIRouter()
@@ -26,13 +28,24 @@ async def post_agent_info(
     
     try:
         agent_ids = []
+        events_saved: Dict[str, int] = {}
+
         for agent in agent_info.agent:
             await AgentController.save_agent_info(agent)
             agent_ids.append(agent.agent_id)
         
-        await AgentController.save_events(agent_info.events)
+        for agent_id in agent_ids:
+            agent_events = [event for event in agent_info.events if event.agent_id == agent_id]
+            print(f"Attempting to save {len(agent_events)} events for agent {agent_id}")
+            event_count = await AgentController.save_events(agent_events)
+            events_saved[agent_id] = event_count
+            print(f"Successfully saved {event_count} events for agent {agent_id}")
         
-        return AgentInfoResponse(message="Agents info and events saved successfully", agent_ids=agent_ids)
+        return AgentInfoResponse(
+            message="Agents info and events saved successfully",
+            agent_ids=agent_ids,
+            events_saved=events_saved
+        )
     
     except (UnauthorizedError, PermissionError) as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
@@ -61,7 +74,7 @@ async def get_agent_info_by_time(
         return GetAgentInfoByTimeResponse(agent_info=agent_data, events=events)
     except (UnauthorizedError, PermissionError):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
-    except NotFoundUserError:
+    except UserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
     except ElasticsearchError:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
@@ -87,3 +100,16 @@ async def get_agent_info_by_group(
     except Exception as e:
             logging.error(f"Unexpected error in get_agent_info_by_group: {str(e)}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+@router.get("/agents/summary", response_model=AgentSummaryResponse)
+async def get_agent_summary(
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    try:
+        summary = await AgentController.get_agent_summary(user=current_user)
+        return AgentSummaryResponse(agents=summary)
+    except UnauthorizedError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+    except Exception as e:
+        logging.error(f"Error in get_agent_summary endpoint: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

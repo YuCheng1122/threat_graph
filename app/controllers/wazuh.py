@@ -4,6 +4,7 @@ from functools import wraps
 from app.models.wazuh_db import AgentModel, EventModel
 from app.models.user_db import UserModel
 from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent
+from app.schemas.wazuh import AgentSummary
 from app.ext.error import ElasticsearchError, UnauthorizedError, PermissionError, HTTPError, UserNotFoundError
 from datetime import datetime
 import traceback
@@ -66,20 +67,26 @@ class AgentController:
             raise
 
     @staticmethod
-    async def save_events(events: List[WazuhEvent]) -> None:
+    async def save_events(events: List[WazuhEvent]) -> int:
         """
-        Save multiple events to Elasticsearch.
+        Save multiple events to Elasticsearch and return the count of successfully saved events.
         """
+        saved_count = 0
         try:
             for event in events:
                 event_model = EventModel(event)
                 print(f"Saving event: {event_model.to_dict()}")
                 result = EventModel.save_to_elasticsearch(event_model)
-                print(f"Event saved for agent ID: {event.agent_id}. Result: {result}")
-            print("Finished processing all events.")
+                if result:  # Assuming save_to_elasticsearch returns True on success
+                    saved_count += 1
+                    print(f"Event saved for agent ID: {event.agent_id}. Result: {result}")
+                else:
+                    print(f"Failed to save event for agent ID: {event.agent_id}")
+            print(f"Finished processing all events. Successfully saved {saved_count} events.")
+            return saved_count
         except Exception as e:
             print(f"Error in save_events: {str(e)}")
-            raise
+            return saved_count  # Return the number of events saved before the error occurred
         
     @staticmethod
     @handle_exceptions
@@ -120,4 +127,68 @@ class AgentController:
         except Exception as e:
             logging.error(f"Error in get_group_agents_and_events: {str(e)}")
             logging.error(traceback.format_exc())
+            raise
+
+    @staticmethod
+    @handle_exceptions
+    async def get_agent_summary(user: UserModel) -> List[AgentSummary]:
+        """
+        Retrieve a summary of agent data from Elasticsearch.
+        """
+        logging.info(f"Fetching agent summary for user={user.username}")
+        try:
+            if user.user_role == 'admin':
+                agents = await AgentModel.load_all_agents()
+            else:
+                user_groups = UserModel.get_user_groups(user.username)
+                group_names = [group['group_name'] for group in user_groups]
+                agents = await AgentModel.load_agents_by_groups(group_names)
+
+            logging.info(f"Retrieved {len(agents)} agents")
+
+            total_agents = len(agents)
+            active_agents = 0
+            windows_agents = 0
+            active_windows_agents = 0
+            linux_agents = 0
+            active_linux_agents = 0
+            macos_agents = 0
+            active_macos_agents = 0
+
+            for agent in agents:
+                logging.debug(f"Processing agent: {agent}")
+                is_active = agent['agent_status'].lower() == 'active'
+                os_type = AgentController.determine_os(agent['os'])
+
+                if is_active:
+                    active_agents += 1
+
+                if os_type == 'windows':
+                    windows_agents += 1
+                    if is_active:
+                        active_windows_agents += 1
+                elif os_type == 'linux':
+                    linux_agents += 1
+                    if is_active:
+                        active_linux_agents += 1
+                elif os_type == 'macos':
+                    macos_agents += 1
+                    if is_active:
+                        active_macos_agents += 1
+
+            summary = [
+                AgentSummary(id=1, agent_name="Active agents", data=active_agents),
+                AgentSummary(id=2, agent_name="Total agents", data=total_agents),
+                AgentSummary(id=3, agent_name="Active Windows agents", data=active_windows_agents),
+                AgentSummary(id=4, agent_name="Windows agents", data=windows_agents),
+                AgentSummary(id=5, agent_name="Active Linux agents", data=active_linux_agents),
+                AgentSummary(id=6, agent_name="Linux agents", data=linux_agents),
+                AgentSummary(id=7, agent_name="Active MacOS agents", data=active_macos_agents),
+                AgentSummary(id=8, agent_name="MacOS agents", data=macos_agents),
+            ]
+
+            logging.info(f"Agent summary: {summary}")
+            return summary
+        except Exception as e:
+            logging.error(f"Error in get_agent_summary: {str(e)}")
             raise

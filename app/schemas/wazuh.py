@@ -119,7 +119,8 @@ class AgentInfoRequest(BaseModel):
 class AgentInfoResponse(BaseModel):
     message: str = Field(..., example="Agents info and events saved successfully", description="Response message")
     agent_ids: List[str] = Field(..., example=["001", "002"], description="IDs of the agents that were saved")
-
+    events_saved: Dict[str, int] = Field(..., example={"001": 5, "002": 3}, description="Number of events saved for each agent")
+    
 class GetAgentInfoByTimeResponse(BaseModel):
     agent_info: Dict
     events: List[Dict]
@@ -218,6 +219,30 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "group_name": "group1",
                         "wazuh_data_type": "wazuh_events"
                     }
+                ]
+            }
+        }
+
+class AgentSummary(BaseModel):
+    id: int = Field(..., example=1, description="Unique identifier for the summary item")
+    agent_name: str = Field(..., example="Active agents", description="Name or category of the summary item")
+    data: int = Field(..., example=20, description="Count or value for the summary item")
+
+class AgentSummaryResponse(BaseModel):
+    agents: List[AgentSummary]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "agents": [
+                    {"id": 1, "agent_name": "Active agents", "data": 20},
+                    {"id": 2, "agent_name": "Total agents", "data": 28},
+                    {"id": 3, "agent_name": "Active Windows agents", "data": 15},
+                    {"id": 4, "agent_name": "Windows agents", "data": 17},
+                    {"id": 5, "agent_name": "Active Linux agents", "data": 5},
+                    {"id": 6, "agent_name": "Linux agents", "data": 9},
+                    {"id": 7, "agent_name": "Active MacOS agents", "data": 0},
+                    {"id": 8, "agent_name": "MacOS agents", "data": 2}
                 ]
             }
         }
