@@ -1,6 +1,6 @@
 from app.models.event_db import EventModel
 from datetime import datetime
-from app.ext.error import GraphControllerError, ElasticsearchError
+from app.ext.error import GraphControllerError, ElasticsearchError, UserNotFoundError
 
 class GraphController:
 
@@ -66,7 +66,7 @@ class GraphController:
             event_model = EventModel(event)
             await EventModel.save_to_elasticsearch(event=event_model, username=device_id)
         
-        except NotFoundUserError as e:
+        except UserNotFoundError as e:
             raise e
         
         except ElasticsearchError as e:
@@ -85,7 +85,7 @@ class GraphController:
             event_model = EventModel(event)
             await EventModel.save_to_elasticsearch(event=event_model, username=device_id)
         
-        except NotFoundUserError as e:
+        except UserNotFoundError as e:
             raise e
         
         except ElasticsearchError as e:

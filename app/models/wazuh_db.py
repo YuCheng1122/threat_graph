@@ -1,11 +1,12 @@
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, RequestError
+from elasticsearch.helpers import scan
 import os
 import logging
 from functools import wraps
-
+import json
 from dotenv import load_dotenv, find_dotenv
 from ..schemas.wazuh import Agent as AgentSchema, WazuhEvent
 from ..ext.error import ElasticsearchError, UserNotFoundError
@@ -136,92 +137,60 @@ class AgentModel:
             raise
 
     @staticmethod
-    async def load_all_agents():
+    @handle_es_exceptions
+    async def load_agents(start_time: datetime, end_time: datetime, group_names: Optional[List[str]] = None):
         """
-        Load all agents from Elasticsearch.
+        Load agents from Elasticsearch within a specified time range, optionally filtered by group names.
         """
-        query = {
-            "query": {"term": {"wazuh_data_type": "agent_info"}},
-            "size": 10000  # Adjust this value based on your needs
-        }
         try:
-            response = es.search(index=get_index_name(), body=query)
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"term": {"wazuh_data_type": "agent_info"}},
+                            {
+                                "range": {
+                                    "timestamp": {
+                                        "gte": start_time.isoformat(),
+                                        "lte": end_time.isoformat(),
+                                        "format": "strict_date_optional_time"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                },
+                "sort": [{"timestamp": {"order": "desc"}}],
+                "size": MAX_RESULTS
+            }
+
+            if group_names:
+                query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
+
+            logging.info(f"Elasticsearch query: {json.dumps(query, indent=2)}")
+            
+            index_name = get_index_name()
+            logging.info(f"Using index: {index_name}")
+            
+            response = es.search(index=index_name, body=query)
+            
             agents = [hit['_source'] for hit in response['hits']['hits']]
+            total_hits = response['hits']['total']['value']
+            
+            logging.info(f"Total hits: {total_hits}")
             logging.info(f"Loaded {len(agents)} agents from Elasticsearch")
+            
+            if agents:
+                logging.info(f"First agent: {json.dumps(agents[0], indent=2)}")
+                logging.info(f"Last agent: {json.dumps(agents[-1], indent=2)}")
+            else:
+                logging.warning("No agents found")
+            
             return agents
         except Exception as e:
-            logging.error(f"Error loading all agents: {str(e)}")
-            raise
+            logging.error(f"Unexpected error in load_agents: {str(e)}")
+            raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
     
-    @staticmethod
-    async def load_agents_by_groups(group_names):
-        """
-        Load agents from Elasticsearch filtered by group names.
-        """
-        query = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"wazuh_data_type": "agent_info"}},
-                        {"terms": {"group_name": group_names}}
-                    ]
-                }
-            },
-            "size": 10000  # Adjust this value based on your needs
-        }
-        try:
-            response = es.search(index=get_index_name(), body=query)
-            agents = [hit['_source'] for hit in response['hits']['hits']]
-            logging.info(f"Loaded {len(agents)} agents from Elasticsearch for groups: {group_names}")
-            return agents
-        except Exception as e:
-            logging.error(f"Error loading agents by groups: {str(e)}")
-            raise
-
-    # @staticmethod
-    # @handle_es_exceptions
-    # async def load_from_elasticsearch(agent_id: str) -> Optional[Dict]:
-    #     query = {
-    #         "query": {
-    #             "bool": {
-    #                 "must": [
-    #                     {"term": {"agent_id": agent_id}},
-    #                     {"term": {"wazuh_data_type": "agent_info"}},
-    #                     {"term": {"agent_status": "disconnected"}} 
-    #                 ]
-    #             }
-    #         }
-    #     }
-    #     response = es.search(index=get_index_name(), body=query)
-    #     hits = response['hits']['hits']
-    #     return hits[0]['_source'] if hits else None
-
-    # @staticmethod
-    # @handle_es_exceptions
-    # async def load_all_agents() -> List[Dict]:
-    #     query = {
-    #         "query": {"term": {"wazuh_data_type": "agent_info"}},
-    #         "size": MAX_RESULTS
-    #     }
-    #     response = es.search(index=get_index_name(), body=query)
-    #     return [hit['_source'] for hit in response['hits']['hits']]
-
-    # @staticmethod
-    # @handle_es_exceptions
-    # async def load_agents_with_time_range(start_time: datetime, end_time: datetime) -> List[Dict]:
-    #     query = {
-    #         "query": {
-    #             "bool": {
-    #                 "must": [
-    #                     {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
-    #                     {"term": {"wazuh_data_type": "agent_info"}}
-    #                 ]
-    #             }
-    #         },
-    #         "size": MAX_RESULTS
-    #     }
-    #     response = es.search(index=get_index_name(), body=query)
-    #     return [hit['_source'] for hit in response['hits']['hits']]
 
 class EventModel:
     """
@@ -320,3 +289,124 @@ class EventModel:
         }
         response = es.search(index=get_index_name(), body=query)
         return [hit['_source'] for hit in response['hits']['hits']]
+    
+    @staticmethod
+    async def get_events_in_timerange(start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
+        query = {
+            "query": {
+                "range": {
+                    "timestamp": {
+                        "gte": start_time.isoformat(),
+                        "lt": end_time.isoformat()
+                    }
+                }
+            },
+            "size": size,
+            "sort": [
+                {"timestamp": "asc"}
+            ]
+        }
+        try:
+            result = es.search(index=get_index_name(), body=query)
+            return result['hits']['hits']
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting events: {str(e)}")
+    
+    @staticmethod
+    async def get_high_level_event_count(start_time: datetime, end_time: datetime) -> int:
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "timestamp": {
+                                    "gte": start_time.isoformat(),
+                                    "lt": end_time.isoformat()
+                                }
+                            }
+                        },
+                        {
+                            "range": {
+                                "rule_level": {
+                                    "gte": 8,
+                                    "lte": 14
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        try:
+            result = es.count(index=get_index_name(), body=query)
+            return result['count']
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting high-level event count: {str(e)}")
+        
+    @staticmethod
+    async def get_events_for_pie_chart(start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
+        query = {
+            "query": {
+                "range": {
+                    "timestamp": {
+                        "gte": start_time.isoformat(),
+                        "lt": end_time.isoformat()
+                    }
+                }
+            },
+            "size": size,
+            "sort": [
+                {"timestamp": "asc"}
+            ]
+        }
+        try:
+            result = es.search(index=get_index_name(), body=query)
+            return result['hits']['hits']
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting events for pie chart: {str(e)}")
+        
+    @staticmethod
+    async def load_messages(start_time: datetime, end_time: datetime, group_names: Optional[List[str]] = None, limit: int = 20) -> Tuple[List[Dict], int]:
+        """
+        Load high-level messages (rule_level > 8) from Elasticsearch within a specified time range.
+        """
+        query = {
+            "bool": {
+                "must": [
+                    {
+                        "range": {
+                            "timestamp": {
+                                "gte": start_time.isoformat(),
+                                "lt": end_time.isoformat()
+                            }
+                        }
+                    },
+                    {
+                        "range": {
+                            "rule_level": {
+                                "gt": 8
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+        
+        if group_names:
+            query["bool"]["must"].append({"terms": {"group_name": group_names}})
+        
+        body = {
+            "query": query,
+            "sort": [{"timestamp": {"order": "desc"}}],
+            "size": limit
+        }
+        
+        try:
+            result = es.search(index=get_index_name(), body=body)
+            messages = [hit['_source'] for hit in result['hits']['hits']]
+            total_count = result['hits']['total']['value']
+            
+            return messages, total_count
+        except Exception as e:
+            raise ElasticsearchError(f"Error loading high-level messages: {str(e)}")

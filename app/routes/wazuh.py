@@ -2,10 +2,10 @@ import traceback
 from fastapi import APIRouter, Depends, Query, HTTPException, status, Request
 from fastapi.exceptions import RequestValidationError
 from app.schemas.wazuh import (
-    AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse, 
-    GetAgentInfoByTimeResponse, GetAgentInfoByGroupResponse, 
-    GetAgentInfoByGroupRequest,
-    AgentSummaryResponse
+    AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse,AgentMessagesResponse, AgentMessagesRequest, 
+    LineChartRequest, LineChartResponse, TotalEventAPIResponse, TotalEventRequest, TotalEventResponse,
+    PieChartAPIResponse, PieChartRequest
+    
 )
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController
@@ -14,6 +14,8 @@ from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError
 from datetime import datetime
 from typing import Dict
 import logging
+from dateutil.parser import parse
+from dateutil.tz import tzutc
 
 router = APIRouter()
 
@@ -57,59 +59,115 @@ async def post_agent_info(
         print(traceback.format_exc())
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-@router.get("/info/by-time", response_model=GetAgentInfoByTimeResponse)
-async def get_agent_info_by_time(
-    request: Request,
-    agent_id: str = Query(..., example="001"),
-    start_time: datetime = Query(..., example="2023-07-30T00:00:00Z"),
-    end_time: datetime = Query(..., example="2023-07-31T00:00:00Z"),
-    current_user: UserModel = Depends(AuthController.get_current_user)
-):
-    """
-    Endpoint to get agent information and events for a specific time range.
-    """
-    try:
-        agent_data = await AgentController.get_agent_info(agent_id, user=current_user)
-        events = await AgentController.get_agent_events(agent_id, start_time, end_time, user=current_user)
-        return GetAgentInfoByTimeResponse(agent_info=agent_data, events=events)
-    except (UnauthorizedError, PermissionError):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
-    except UserNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
-    except ElasticsearchError:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-    except Exception as e:
-        logging.error(f"Unexpected error in get_agent_info_by_time: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
-@router.get("/info/by-group", response_model=GetAgentInfoByGroupResponse)
-async def get_agent_info_by_group(
-    get_request: GetAgentInfoByGroupRequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user)
-):
-    """
-    Endpoint to get agent information and events for a group within a specific time range.
-    """
-    try:
-        result = await AgentController.get_group_agents_and_events(user=current_user, start_time=get_request.start_time, end_time=get_request.end_time)
-        return GetAgentInfoByGroupResponse(**result)
-    except (UnauthorizedError, PermissionError):
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
-    except ElasticsearchError:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-    except Exception as e:
-            logging.error(f"Unexpected error in get_agent_info_by_group: {str(e)}")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
 @router.get("/agents/summary", response_model=AgentSummaryResponse)
 async def get_agent_summary(
+    start_time: datetime = Query(..., description="Start time for the summary period"),
+    end_time: datetime = Query(..., description="End time for the summary period"),
     current_user: UserModel = Depends(AuthController.get_current_user)
 ):
+    """
+    Endpoint to get a summary of agent information within a specified time range.
+    """
     try:
-        summary = await AgentController.get_agent_summary(user=current_user)
+        summary = await AgentController.get_agent_summary(user=current_user, start_time=start_time, end_time=end_time)
         return AgentSummaryResponse(agents=summary)
-    except UnauthorizedError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
     except Exception as e:
         logging.error(f"Error in get_agent_summary endpoint: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+@router.get("/messages", response_model=AgentMessagesResponse)
+async def get_agent_messages(
+    request: AgentMessagesRequest = Depends(),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get recent high-level messages (rule_level > 8) for all agents the user has access to.
+    """
+    try:
+        messages = await AgentController.get_messages(
+            user=current_user, 
+            start_time=request.start_time, 
+            end_time=request.end_time, 
+            limit=request.limit
+        )
+        return messages
+    except UnauthorizedError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    except PermissionError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    except ElasticsearchError as e:
+        logging.error(f"Elasticsearch error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+    except Exception as e:
+        logging.error(f"Error in get_agent_messages endpoint: {str(e)}")
+        logging.error(traceback.format_exc())
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+    
+@router.get("/line-chart", response_model=LineChartResponse)
+async def get_line_chart_data(
+    request: LineChartRequest = Depends(),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get line chart data for top rule descriptions over the specified time range.
+    """
+    try:
+        start_time_utc = request.start_time.replace(tzinfo=tzutc())
+        end_time_utc = request.end_time.replace(tzinfo=tzutc())
+        
+        chart_data = await AgentController.get_line_chart_data(start_time_utc, end_time_utc)
+        return chart_data
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid date format: {str(e)}")
+    except UnauthorizedError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    except PermissionError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    except ElasticsearchError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")
+
+@router.get("/total-event", response_model=TotalEventAPIResponse)
+async def get_total_event(
+    request: TotalEventRequest = Depends(),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get the total count of events (levels 8-14) within a specified time range.
+    """
+    try:
+        count = await AgentController.get_total_event_count(request.start_time, request.end_time)
+        return TotalEventAPIResponse(success=True, content=TotalEventResponse(count=count))
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except UnauthorizedError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    except PermissionError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    except ElasticsearchError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")
+    
+@router.get("/pie-chart", response_model=PieChartAPIResponse)
+async def get_pie_chart_data(
+    request: PieChartRequest = Depends(),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get pie chart data including Top 5 agents, Top MITRE ATT&CKs, Top 5 Events, and Top 5 Event Counts by Agent Name.
+    """
+    try:
+        pie_chart_data = await AgentController.get_pie_chart_data(request.start_time, request.end_time)
+        return PieChartAPIResponse(success=True, content=pie_chart_data)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except UnauthorizedError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+    except PermissionError:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+    except ElasticsearchError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")

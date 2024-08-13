@@ -82,7 +82,7 @@ class UserModel:
             session.close()
             return groups
         except Exception as e:
-            print(e)
+            print(f"Error retrieving user groups: {e}")
             raise ElasticsearchError(f'Database error: {e}')
         
     @staticmethod

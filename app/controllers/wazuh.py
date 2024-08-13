@@ -1,13 +1,17 @@
 from typing import List, Dict, Any
 import logging
+import json
+from collections import defaultdict, Counter
 from functools import wraps
 from app.models.wazuh_db import AgentModel, EventModel
 from app.models.user_db import UserModel
-from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent
-from app.schemas.wazuh import AgentSummary
+from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent, PieChartData, PieChartItem
+from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData
 from app.ext.error import ElasticsearchError, UnauthorizedError, PermissionError, HTTPError, UserNotFoundError
 from datetime import datetime
 import traceback
+from dateutil.parser import parse
+from dateutil.tz import tzutc
 
 def handle_exceptions(func):
     """
@@ -53,41 +57,16 @@ class AgentController:
         logging.info(f"Permission granted for user {user.username} for group {group_name}")
 
     @staticmethod
+    @handle_exceptions
     async def save_agent_info(agent: AgentSchema) -> None:
         """
         Save agent information to Elasticsearch.
         """
-        try:
-            agent_model = AgentModel(agent)
-            print(f"Saving agent info: {agent_model.to_dict()}")
-            result = AgentModel.save_to_elasticsearch(agent_model)
-            print(f"Agent info saved for agent ID: {agent.agent_id}. Result: {result}")
-        except Exception as e:
-            print(f"Error in save_agent_info: {str(e)}")
-            raise
+        agent_model = AgentModel(agent)
+        logging.info(f"Saving agent info: {agent_model.to_dict()}")
+        result = AgentModel.save_to_elasticsearch(agent_model)
+        logging.info(f"Agent info saved for agent ID: {agent.agent_id}. Result: {result}")
 
-    @staticmethod
-    async def save_events(events: List[WazuhEvent]) -> int:
-        """
-        Save multiple events to Elasticsearch and return the count of successfully saved events.
-        """
-        saved_count = 0
-        try:
-            for event in events:
-                event_model = EventModel(event)
-                print(f"Saving event: {event_model.to_dict()}")
-                result = EventModel.save_to_elasticsearch(event_model)
-                if result:  # Assuming save_to_elasticsearch returns True on success
-                    saved_count += 1
-                    print(f"Event saved for agent ID: {event.agent_id}. Result: {result}")
-                else:
-                    print(f"Failed to save event for agent ID: {event.agent_id}")
-            print(f"Finished processing all events. Successfully saved {saved_count} events.")
-            return saved_count
-        except Exception as e:
-            print(f"Error in save_events: {str(e)}")
-            return saved_count  # Return the number of events saved before the error occurred
-        
     @staticmethod
     @handle_exceptions
     async def get_agent_events(agent_id: str, start_time: datetime, end_time: datetime, user: UserModel) -> List[Dict]:
@@ -130,65 +109,221 @@ class AgentController:
             raise
 
     @staticmethod
+    def determine_os(os_name: str) -> str:
+        os_name = os_name.lower()
+        if any(keyword in os_name for keyword in ['windows', 'microsoft']):
+            return 'windows'
+        elif any(keyword in os_name for keyword in ['linux', 'ubuntu', 'centos', 'redhat', 'debian']):
+            return 'linux'
+        elif any(keyword in os_name for keyword in ['mac', 'darwin']):
+            return 'macos'
+        else:
+            return 'other'
+
+    @staticmethod
     @handle_exceptions
-    async def get_agent_summary(user: UserModel) -> List[AgentSummary]:
-        """
-        Retrieve a summary of agent data from Elasticsearch.
-        """
-        logging.info(f"Fetching agent summary for user={user.username}")
-        try:
-            if user.user_role == 'admin':
-                agents = await AgentModel.load_all_agents()
-            else:
-                user_groups = UserModel.get_user_groups(user.username)
-                group_names = [group['group_name'] for group in user_groups]
-                agents = await AgentModel.load_agents_by_groups(group_names)
+    async def get_agent_summary(user: UserModel, start_time: datetime, end_time: datetime) -> List[AgentSummary]:
+        logging.info(f"Fetching agent summary for user_id={user.id} from {start_time} to {end_time}")
+        
+        if user.user_role == 'admin':
+            group_names = None  # Admin can see all groups
+        else:
+            group_names = UserModel.get_user_groups(user.id)  # Remove await here
+            logging.info(f"User groups: {group_names}")
+            if not group_names:
+                logging.warning(f"No groups found for user {user.id}")
+                return []
 
-            logging.info(f"Retrieved {len(agents)} agents")
+        agents = await AgentModel.load_agents(start_time, end_time, group_names)
 
-            total_agents = len(agents)
-            active_agents = 0
-            windows_agents = 0
-            active_windows_agents = 0
-            linux_agents = 0
-            active_linux_agents = 0
-            macos_agents = 0
-            active_macos_agents = 0
+        logging.info(f"Retrieved {len(agents)} agents")
+        summary = AgentController.calculate_agent_summary(agents)
+        logging.info(f"Agent summary: {json.dumps([s.dict() for s in summary], indent=2)}")
+        return summary
 
-            for agent in agents:
-                logging.debug(f"Processing agent: {agent}")
-                is_active = agent['agent_status'].lower() == 'active'
-                os_type = AgentController.determine_os(agent['os'])
+    @staticmethod
+    def calculate_agent_summary(agents: List[Dict]) -> List[AgentSummary]:
+        total_agents = len(agents)
+        active_agents = 0
+        windows_agents = 0
+        active_windows_agents = 0
+        linux_agents = 0
+        active_linux_agents = 0
+        macos_agents = 0
+        active_macos_agents = 0
 
+        logging.info(f"Processing {total_agents} agents")
+
+        for idx, agent in enumerate(agents, 1):
+            logging.debug(f"Processing agent {idx}/{total_agents}: {json.dumps(agent, indent=2)}")
+            
+            is_active = agent.get('agent_status', '').lower() == 'active'
+            os_type = AgentController.determine_os(agent.get('os', ''))
+            
+            logging.debug(f"Agent {idx} - Is Active: {is_active}, OS Type: {os_type}")
+
+            if is_active:
+                active_agents += 1
+
+            if os_type == 'windows':
+                windows_agents += 1
                 if is_active:
-                    active_agents += 1
+                    active_windows_agents += 1
+            elif os_type == 'linux':
+                linux_agents += 1
+                if is_active:
+                    active_linux_agents += 1
+            elif os_type == 'macos':
+                macos_agents += 1
+                if is_active:
+                    active_macos_agents += 1
+            else:
+                logging.warning(f"Unknown OS type for agent {idx}: {os_type}")
 
-                if os_type == 'windows':
-                    windows_agents += 1
-                    if is_active:
-                        active_windows_agents += 1
-                elif os_type == 'linux':
-                    linux_agents += 1
-                    if is_active:
-                        active_linux_agents += 1
-                elif os_type == 'macos':
-                    macos_agents += 1
-                    if is_active:
-                        active_macos_agents += 1
+        logging.info(f"Summary - Total: {total_agents}, Active: {active_agents}")
+        logging.info(f"Windows - Total: {windows_agents}, Active: {active_windows_agents}")
+        logging.info(f"Linux - Total: {linux_agents}, Active: {active_linux_agents}")
+        logging.info(f"MacOS - Total: {macos_agents}, Active: {active_macos_agents}")
 
-            summary = [
-                AgentSummary(id=1, agent_name="Active agents", data=active_agents),
-                AgentSummary(id=2, agent_name="Total agents", data=total_agents),
-                AgentSummary(id=3, agent_name="Active Windows agents", data=active_windows_agents),
-                AgentSummary(id=4, agent_name="Windows agents", data=windows_agents),
-                AgentSummary(id=5, agent_name="Active Linux agents", data=active_linux_agents),
-                AgentSummary(id=6, agent_name="Linux agents", data=linux_agents),
-                AgentSummary(id=7, agent_name="Active MacOS agents", data=active_macos_agents),
-                AgentSummary(id=8, agent_name="MacOS agents", data=macos_agents),
+        return [
+            AgentSummary(id=1, agent_name="Active agents", data=active_agents),
+            AgentSummary(id=2, agent_name="Total agents", data=total_agents),
+            AgentSummary(id=3, agent_name="Active Windows agents", data=active_windows_agents),
+            AgentSummary(id=4, agent_name="Windows agents", data=windows_agents),
+            AgentSummary(id=5, agent_name="Active Linux agents", data=active_linux_agents),
+            AgentSummary(id=6, agent_name="Linux agents", data=linux_agents),
+            AgentSummary(id=7, agent_name="Active MacOS agents", data=active_macos_agents),
+            AgentSummary(id=8, agent_name="MacOS agents", data=macos_agents),
+        ]
+    
+    # -------------------------------------------------------------------------------- Event logic 
+
+    @staticmethod
+    @handle_exceptions
+    async def get_messages(user: UserModel, start_time: datetime, end_time: datetime, limit: int = 20) -> AgentMessagesResponse:
+        """
+        Retrieve high-level messages (rule_level > 8) for all agents the user has access to within the specified time range.
+        """
+        logging.info(f"Fetching high-level messages for user={user.username}, start_time={start_time}, end_time={end_time}, limit={limit}")
+        
+        # Check user permissions
+        if user.user_role != 'admin':
+            group_names = UserModel.get_user_groups(user.id)
+            if not group_names:
+                logging.warning(f"No groups found for user {user.id}")
+                return AgentMessagesResponse(total=0, datas=[])
+        else:
+            group_names = None  # Admin can see all groups
+
+        messages, total_count = await EventModel.load_messages(start_time, end_time, group_names, limit)
+        
+        # Convert to AgentMessage schema
+        agent_messages = []
+        for i, msg in enumerate(messages, start=1):
+            try:
+                agent_message = AgentMessage(
+                    id=i,
+                    time=datetime.fromisoformat(msg.get('timestamp', '')).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
+                    agent_name=msg.get('agent_name', ''),
+                    rule_description=msg.get('rule_description', ''),
+                    rule_mitre_tactic=msg.get('rule_mitre_tactic'),
+                    rule_mitre_id=msg.get('rule_mitre_id'),
+                    rule_level=msg.get('rule_level', 0)
+                )
+                agent_messages.append(agent_message)
+            except Exception as e:
+                logging.error(f"Error processing message: {e}")
+                continue
+        
+        logging.info(f"Retrieved {len(agent_messages)} high-level messages out of {total_count} total")
+        
+        return AgentMessagesResponse(total=total_count, datas=agent_messages)
+    
+    @staticmethod
+    async def get_line_chart_data(start_time: datetime, end_time: datetime) -> LineChartResponse:
+        start_time = start_time.replace(tzinfo=tzutc())
+        end_time = end_time.replace(tzinfo=tzutc())
+        
+        events = await EventModel.get_events_in_timerange(start_time, end_time)
+        
+        rule_counts = defaultdict(lambda: defaultdict(int))
+        time_range = end_time - start_time
+        interval = time_range / 4
+        
+        for event in events:
+            event_data = event['_source']
+            rule_description = event_data.get('rule_description', 'Unknown')
+            event_time = parse(event_data['timestamp']).replace(tzinfo=tzutc())
+            
+            interval_index = min(4, int((event_time - start_time) / interval))
+            interval_start = start_time + interval * interval_index
+            
+            rule_counts[rule_description][interval_start] += 1
+        
+        top_rules = sorted(rule_counts.items(), key=lambda x: sum(x[1].values()), reverse=True)[:10]
+        
+        line_datas = []
+        for rule, counts in top_rules:
+            data_points = [
+                (start_time + interval * i, counts.get(start_time + interval * i, 0))
+                for i in range(5)
             ]
+            line_data = LineData(name=rule, data=data_points)
+            line_datas.append(line_data)
+        
+        return LineChartResponse(label=[data.name for data in line_datas], datas=line_datas)
+    
+    @staticmethod
+    async def get_total_event_count(start_time: datetime, end_time: datetime) -> str:
+        count = await EventModel.get_high_level_event_count(start_time, end_time)
+        return f"{count:,}" 
+    
+    @staticmethod
+    async def get_pie_chart_data(start_time: datetime, end_time: datetime) -> PieChartData:
+        events = await EventModel.get_events_for_pie_chart(start_time, end_time)
+        
+        agents_counter = Counter()
+        mitre_counter = Counter()
+        events_counter = Counter()
+        agent_event_counter = Counter()
 
-            logging.info(f"Agent summary: {summary}")
-            return summary
-        except Exception as e:
-            logging.error(f"Error in get_agent_summary: {str(e)}")
-            raise
+        for event in events:
+            event_data = event['_source']
+            agent_name = event_data.get('agent_name', 'Unknown')
+            rule_description = event_data.get('rule_description', 'Unknown')
+            mitre_technique = event_data.get('rule_mitre_technique', 'Unknown')
+
+            agents_counter[agent_name] += 1
+            mitre_counter[mitre_technique] += 1
+            events_counter[rule_description] += 1
+            agent_event_counter[agent_name] += 1
+
+        def get_top_5(counter):
+            return [PieChartItem(value=count, name=name) for name, count in counter.most_common(5)]
+
+        return PieChartData(
+            top_agents=get_top_5(agents_counter),
+            top_mitre=get_top_5(mitre_counter),
+            top_events=get_top_5(events_counter),
+            top_event_counts=get_top_5(agent_event_counter)
+        )
+        
+    @staticmethod
+    @handle_exceptions
+    async def save_events(events: List[WazuhEvent]) -> int:
+        """
+        Save multiple events to Elasticsearch and return the count of successfully saved events.
+        """
+        saved_count = 0
+        for event in events:
+            event_model = EventModel(event)
+            logging.info(f"Saving event: {event_model.to_dict()}")
+            result = EventModel.save_to_elasticsearch(event_model)
+            if result:  # Assuming save_to_elasticsearch returns True on success
+                saved_count += 1
+                logging.info(f"Event saved for agent ID: {event.agent_id}. Result: {result}")
+            else:
+                logging.warning(f"Failed to save event for agent ID: {event.agent_id}")
+        logging.info(f"Finished processing all events. Successfully saved {saved_count} events.")
+        return saved_count
+        

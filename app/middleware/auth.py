@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 import os
 from dotenv import load_dotenv
 import logging
-from app.models.user_db import UserModel  # Import your UserModel
+from app.models.user_db import UserModel
 
 # Load environment variables
 load_dotenv()
