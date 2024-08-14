@@ -27,7 +27,6 @@ async def receive_traffic_and_alert_date(
         await GraphController.save_flow_data(event=event, device_id=device_id)
     return JSONResponse(status_code=200, content={'success': True, "message": "Event stored successfully"})
 
-
 @router.get("/graph_data")
 async def get_traffic_data(
     request: Request,

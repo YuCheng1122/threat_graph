@@ -254,7 +254,7 @@ class AgentSummaryResponse(BaseModel):
 class AgentMessage(BaseModel):
     id: int = Field(..., example=1)
     time: str = Field(..., example="Jul 30, 2024 @ 03:36:11.534")
-    agent_name: str = Field(..., example="win10_wazuh_test0718")
+    agent_id: str = Field(..., example="001")
     rule_description: str = Field(..., example="VirusTotal: Alert - c:\\users\\vm_user\\downloads\\annabelle.exe - 62 engines detected this file")
     rule_mitre_tactic: str = Field(None, example="Execution")
     rule_mitre_id: str = Field(None, example="T1203")
@@ -272,7 +272,7 @@ class AgentMessagesResponse(BaseModel):
                     {
                         "id": 1,
                         "time": "Jul 30, 2024 @ 03:36:11.534",
-                        "agent_name": "win10_wazuh_test0718",
+                        "agent_id": "001",
                         "rule_description": "VirusTotal: Alert - c:\\users\\vm_user\\downloads\\annabelle.exe - 62 engines detected this file",
                         "rule_mitre_tactic": "Execution",
                         "rule_mitre_id": "T1203",

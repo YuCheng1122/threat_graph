@@ -224,7 +224,7 @@ class AgentController:
                 agent_message = AgentMessage(
                     id=i,
                     time=datetime.fromisoformat(msg.get('timestamp', '')).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
-                    agent_name=msg.get('agent_name', ''),
+                    agent_id=msg.get('agent_id', ''),
                     rule_description=msg.get('rule_description', ''),
                     rule_mitre_tactic=msg.get('rule_mitre_tactic'),
                     rule_mitre_id=msg.get('rule_mitre_id'),
@@ -289,17 +289,24 @@ class AgentController:
 
         for event in events:
             event_data = event['_source']
-            agent_name = event_data.get('agent_name', 'Unknown')
-            rule_description = event_data.get('rule_description', 'Unknown')
-            mitre_technique = event_data.get('rule_mitre_technique', 'Unknown')
+            agent_id = event_data.get('agent_id', '')
+            rule_description = event_data.get('rule_description', '')
+            mitre_technique = event_data.get('rule_mitre_technique', '')
 
-            agents_counter[agent_name] += 1
-            mitre_counter[mitre_technique] += 1
-            events_counter[rule_description] += 1
-            agent_event_counter[agent_name] += 1
+            if agent_id:
+                agents_counter[agent_id] += 1
+                agent_event_counter[agent_id] += 1
+            if mitre_technique:
+                mitre_counter[mitre_technique] += 1
+            if rule_description:
+                events_counter[rule_description] += 1
 
         def get_top_5(counter):
-            return [PieChartItem(value=count, name=name) for name, count in counter.most_common(5)]
+            items = []
+            for name, count in counter.most_common():
+                if name and name.lower() != 'unknown' and len(items) < 5:
+                    items.append(PieChartItem(value=count, name=name))
+            return items
 
         return PieChartData(
             top_agents=get_top_5(agents_counter),

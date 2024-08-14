@@ -191,7 +191,6 @@ class AgentModel:
             logging.error(f"Unexpected error in load_agents: {str(e)}")
             raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
     
-
 class EventModel:
     """
     Represents an event in the Wazuh system. Handles the creation, storage, and retrieval of event data.
