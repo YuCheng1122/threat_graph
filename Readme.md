@@ -30,4 +30,4 @@ This project is a web API application that includes configurations, controllers,
 
 To run the tests, use:
 ```sh
-pytes
+py
