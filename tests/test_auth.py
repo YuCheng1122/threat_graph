@@ -1,52 +1,86 @@
+import requests
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from app.utils.auth import AuthManager, UserInDB
-from dotenv import load_dotenv
-import os
+from requests.exceptions import SSLError, ConnectionError, Timeout
 
-load_dotenv()
+BASE_URL = "https://202.5.255.223/api/auth/login"
 
-client = TestClient(app)
-
-def test_get_access_token():
-    response = client.post(
-        "/token",
-        data={"username": os.getenv("USER_EMAIL"), "password": "7727"},
-    )
-    assert response.status_code == 200
-    assert "access_token" in response.json()
-    assert response.json()["token_type"] == "bearer"
-
-def test_get_access_token_invalid_password():
-    response = client.post(
-        "/token",
-        data={"username": os.getenv("USER_EMAIL"), "password": "wrongpassword"},
-    )
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Incorrect username or password"}
-
-def test_get_access_token_invalid_username():
-    response = client.post(
-        "/token",
-        data={"username": "invalid@example.com", "password": "7727"},
-    )
-    assert response.status_code == 401
-    assert response.json() == {"detail": "Incorrect username or password"}
-
-def test_get_access_token_inactive_user(monkeypatch):
-    def mock_get_user(db, username):
-        return UserInDB(
-            username=username,
-            hashed_password=AuthManager.get_password_hash("7727"),
-            disabled=True
+def make_login_request(url, username, password, headers=None, timeout=10):
+    try:
+        response = requests.post(
+            url,
+            data={"username": username, "password": password},
+            headers=headers,
+            verify=False,  # Disable SSL verification (not recommended for production)
+            timeout=timeout
         )
+        return response
+    except SSLError:
+        pytest.skip("SSL verification failed.")
+    except ConnectionError:
+        pytest.fail("Failed to connect to the server.")
+    except Timeout:
+        pytest.fail("Request timed out.")
 
-    monkeypatch.setattr("app.auth.AuthManager.get_user", mock_get_user)
+def test_successful_login():
+    response = make_login_request(BASE_URL, "poting", "KYU4m2bmg")
+    assert response.status_code == 200
+    json_response = response.json()
+    assert json_response["success"] == True
+    assert "access_token" in json_response["content"]
+    assert json_response["content"]["token_type"] == "bearer"
+    assert json_response["message"] == "Login successfully"
 
-    response = client.post(
-        "/token",
-        data={"username": os.getenv("USER_EMAIL"), "password": "7727"},
-    )
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Inactive user"}
+def test_invalid_credentials():
+    response = make_login_request(BASE_URL, "poting", "wrongpassword")
+    assert response.status_code == 404
+    json_response = response.json()
+    assert json_response == {
+        "success": False,
+        "content": None,
+        "message": "Incorrect username or password"
+    }
+
+def test_user_not_found():
+    response = make_login_request(BASE_URL, "nonexistent_user", "password")
+    assert response.status_code == 404
+    json_response = response.json()
+    assert json_response == {
+        "success": False,
+        "content": None,
+        "message": "Incorrect username or password"
+    }
+
+def test_empty_credentials():
+    response = make_login_request(BASE_URL, "", "")
+    assert response.status_code == 422
+    json_response = response.json()
+    assert json_response["success"] == False
+    assert "message" in json_response
+    assert json_response["content"] is None
+
+def test_missing_username():
+    response = requests.post(BASE_URL, data={"password": "somepassword"}, verify=False)
+    assert response.status_code == 422
+    json_response = response.json()
+    assert json_response["success"] == False
+    assert "message" in json_response
+    assert json_response["content"] is None
+
+def test_missing_password():
+    response = requests.post(BASE_URL, data={"username": "someuser"}, verify=False)
+    assert response.status_code == 422
+    json_response = response.json()
+    assert json_response["success"] == False
+    assert "message" in json_response
+    assert json_response["content"] is None
+
+def test_malformed_request():
+    response = requests.post(BASE_URL, data="malformed data", verify=False)
+    assert response.status_code == 422
+    json_response = response.json()
+    assert json_response["success"] == False
+    assert "message" in json_response
+    assert json_response["content"] is None
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

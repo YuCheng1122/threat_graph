@@ -1,20 +1,18 @@
 import traceback
-from fastapi import APIRouter, Depends, Query, HTTPException, status, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi import APIRouter, Depends, Query, HTTPException
 from app.schemas.wazuh import (
     AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse,AgentMessagesResponse, AgentMessagesRequest, 
     LineChartRequest, LineChartResponse, TotalEventAPIResponse, TotalEventRequest, TotalEventResponse,
-    PieChartAPIResponse, PieChartRequest
-    
+    PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent
 )
+from fastapi.responses import JSONResponse
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController
 from app.models.user_db import UserModel
-from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError, UserNotFoundError
+from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError, InternalServerError
 from datetime import datetime
 from typing import Dict
 import logging
-from dateutil.parser import parse
 from dateutil.tz import tzutc
 
 router = APIRouter()
@@ -27,7 +25,6 @@ async def post_agent_info(
     """
     Endpoint to post agent information and events.
     """
-    
     try:
         agent_ids = []
         events_saved: Dict[str, int] = {}
@@ -38,27 +35,29 @@ async def post_agent_info(
         
         for agent_id in agent_ids:
             agent_events = [event for event in agent_info.events if event.agent_id == agent_id]
-            print(f"Attempting to save {len(agent_events)} events for agent {agent_id}")
             event_count = await AgentController.save_events(agent_events)
             events_saved[agent_id] = event_count
-            print(f"Successfully saved {event_count} events for agent {agent_id}")
-        
-        return AgentInfoResponse(
+
+        response_content = AgentInfoResponseContent(
             message="Agents info and events saved successfully",
             agent_ids=agent_ids,
             events_saved=events_saved
         )
+
+        return AgentInfoResponse(success=True, content=response_content)
     
     except (UnauthorizedError, PermissionError) as e:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
-    except ElasticsearchError:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-    except RequestValidationError:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid request")
+        return JSONResponse(
+            status_code=e.status_code,
+            content=e.to_dict()
+        )
     except Exception as e:
-        print(traceback.format_exc())
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
+        error = InternalServerError(str(e))
+        return JSONResponse(
+            status_code=error.status_code,
+            content=error.to_dict()
+        )
+          
 @router.get("/agents/summary", response_model=AgentSummaryResponse)
 async def get_agent_summary(
     start_time: datetime = Query(..., description="Start time for the summary period"),

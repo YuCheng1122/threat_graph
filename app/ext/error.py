@@ -3,14 +3,20 @@ class BaseCustomError(Exception):
     def __init__(self, message: str, status_code: int):
         self.message = message
         self.status_code = status_code
+        self.success = False
+        self.content = None
         super().__init__(self.message)
-        
-# -------------------------------------------------------------------------------- HTTP Errors
+
+    def to_dict(self):
+        return {
+            "success": self.success,
+            "content": self.content,
+            "message": self.message
+        }
 
 class HTTPError(BaseCustomError):
     """Base class for HTTP errors"""
-    def __init__(self, message: str, status_code: int):
-        super().__init__(message, status_code)
+    pass
 
 class BadRequestError(HTTPError):
     """400 Bad Request"""
@@ -56,8 +62,13 @@ class InternalServerError(HTTPError):
     """500 Internal Server Error"""
     def __init__(self, message: str = "Internal Server Error"):
         super().__init__(message, 500)
+        
+class CustomElasticsearchError(HTTPError):
+    """500 Internal Server Error"""
+    def __init__(self, message: str = "Elasticsearch error message here"):
+        super().__init__(message, 500)
 
-# -------------------------------------------------------------------------------- Data Processing Errors
+# Data Processing Errors
 
 class GraphControllerError(BaseCustomError):
     """Raised when there's an error processing graph data"""
@@ -69,7 +80,7 @@ class ElasticsearchError(BaseCustomError):
     def __init__(self, message: str, status_code: int = 500):
         super().__init__(message, status_code)
 
-# -------------------------------------------------------------------------------- User-related Errors
+# User-related Errors
 
 class UserNotFoundError(BaseCustomError):
     """Raised when a user cannot be found in Elasticsearch"""
@@ -86,7 +97,7 @@ class UserDisabledError(BaseCustomError):
     def __init__(self, message: str = "User account is disabled", status_code: int = 403):
         super().__init__(message, status_code)
 
-# -------------------------------------------------------------------------------- Request Errors
+# Request Errors
 
 class GraphDataRequestParamsError(BaseCustomError):
     """Raised when there's an error with request parameters for graph data"""
@@ -98,7 +109,7 @@ class RequestParamsError(BaseCustomError):
     def __init__(self, message: str, status_code: int = 400):
         super().__init__(message, status_code)
 
-# -------------------------------------------------------------------------------- Authentication and Authorization Errors
+# Authentication and Authorization Errors
 
 class AuthControllerError(BaseCustomError):
     """Raised when there's an error processing authentication data"""

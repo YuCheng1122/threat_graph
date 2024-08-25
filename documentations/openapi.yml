@@ -1,0 +1,585 @@
+openapi: 3.0.0
+info:
+  title: Wazuh Agent API
+  version: 1.0.0
+  description: API for managing Wazuh agents and events
+
+paths:
+  /api/wazuh/messages:
+    get:
+      summary: Get agent messages
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentMessagesResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/wazuh/line-chart:
+    get:
+      summary: Get line chart data
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineChartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/wazuh/total-event:
+    get:
+      summary: Get total event count
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalEventResponse'
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/wazuh/pie-chart:
+    get:
+      summary: Get pie chart data
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PieChartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /agent_info:
+    post:
+      summary: Save agent info and events
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agents:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Agent'
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WazuhEvent'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentInfoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/wazuh/agents/summary:
+    get:
+      summary: Get agent summary
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSummaryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+
+  responses:
+
+      BadRequest:
+        description: Bad Request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      Unauthorized:
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+      InternalServerError:
+        description: Internal Server Error
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    AgentMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        time:
+          type: string
+        agent_id:
+          type: string
+        rule_description:
+          type: string
+        rule_mitre_tactic:
+          type: string
+        rule_mitre_id:
+          type: string
+        rule_level:
+          type: integer
+
+    AgentMessagesResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        datas:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentMessage'
+
+    AgentMessagesRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+
+    LineData:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        data:
+          type: array
+          items:
+            type: array
+            items:
+              oneOf:
+                - type: string
+                  format: date-time
+                - type: integer
+
+    LineChartResponse:
+      type: object
+      properties:
+        label:
+          type: array
+          items:
+            type: string
+        datas:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineData'
+
+
+    LineChartRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    TotalEventRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    TotalEventResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        content:
+          type: object
+          properties:
+            count:
+              type: string
+
+    TotalEventAPIResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        content:
+          $ref: '#/components/schemas/TotalEventResponse'
+
+    PieChartItem:
+      type: object
+      properties:
+        value:
+          type: integer
+        name:
+          type: string
+
+    PieChartData:
+      type: object
+      properties:
+        top_agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PieChartItem'
+        top_mitre:
+          type: array
+          items:
+            $ref: '#/components/schemas/PieChartItem'
+        top_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/PieChartItem'
+        top_event_counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PieChartItem'
+
+    PieChartRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    PieChartResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        content:
+          $ref: '#/components/schemas/PieChartData'
+
+    Agent:
+      type: object
+      properties:
+        agent_name:
+          type: string
+          example: "test-agent-1"
+        agent_id:
+          type: string
+          example: "001"
+        ip:
+          type: string
+          example: "192.168.1.100"
+        agent_status:
+          type: string
+          example: "Active"
+        status_code:
+          type: integer
+          example: 0
+        last_keep_alive:
+          type: string
+          format: date-time
+          example: "2023-07-30T12:00:00Z"
+        os:
+          type: string
+          example: "Ubuntu"
+        os_version:
+          type: string
+          example: "20.04"
+        group_name:
+          type: string
+          example: "group1"
+        wazuh_data_type:
+          type: string
+          enum: [agent_info]
+
+    WazuhEvent:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-07-30T12:05:00Z"
+        agent_id:
+          type: string
+          example: "001"
+        agent_ip:
+          type: string
+          example: "192.168.1.100"
+        rule_description:
+          type: string
+          example: "File added to the system."
+        rule_level:
+          type: integer
+          example: 3
+        rule_id:
+          type: string
+          example: "550"
+        rule_mitre_id:
+          type: string
+          nullable: true
+          example: "T1078"
+        rule_mitre_tactic:
+          type: string
+          nullable: true
+          example: "Persistence"
+        rule_mitre_technique:
+          type: string
+          nullable: true
+          example: "Valid Accounts"
+        group_name:
+          type: string
+          example: "group1"
+        wazuh_data_type:
+          type: string
+          enum: [wazuh_events]
+
+    AgentInfoResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Agents info and events saved successfully"
+        agent_ids:
+          type: array
+          items:
+            type: string
+          example: ["001", "002"]
+        events_saved:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            "001": 5
+            "002": 3
+
+    AgentSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        agent_name:
+          type: string
+        data:
+          type: integer
+
+    AgentSummaryRequest:
+      type: object
+      properties:
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+
+    AgentSummaryResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentSummary'
+ 
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+  
+    UserLogin:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - name
+        - email
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        content:
+          type: object
+          properties:
+            access_token:
+              type: string
+            token_type:
+              type: string
+        message:
+          type: string
+      example:
+        success: true
+        content:
+          access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwb3RpbmciLCJleHAiOjE3MjM4MDk4NzZ9.F2kiDS_B5kih9awTG29T7HTRSGF7lExDV4iTPxgImfU"
+          token_type: "bearer"
+        message: "Login successfully"
+
+    
+        
+
+

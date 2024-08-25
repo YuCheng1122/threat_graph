@@ -1,0 +1,45 @@
+{
+    "success": true,
+    "content": {
+        "top_agents": [
+            {
+                "value": 50,
+                "name": "Agent 001"
+            },
+            {
+                "value": 30,
+                "name": "Agent 002"
+            }
+        ],
+        "top_mitre": [
+            {
+                "value": 40,
+                "name": "T1078"
+            },
+            {
+                "value": 20,
+                "name": "T1080"
+            }
+        ],
+        "top_events": [
+            {
+                "value": 70,
+                "name": "Unauthorized Access"
+            },
+            {
+                "value": 50,
+                "name": "Malware Detected"
+            }
+        ],
+        "top_event_counts": [
+            {
+                "value": 120,
+                "name": "Critical"
+            },
+            {
+                "value": 80,
+                "name": "Warning"
+            }
+        ]
+    }
+}

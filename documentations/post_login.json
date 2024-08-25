@@ -1,0 +1,8 @@
+{
+    "success": true,
+    "content": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwb3RpbmciLCJleHAiOjE3MjQwMzcwMjR9.lbXBdklhXiE8cZatbdLsgOXAwLNFWsPRSHhzNyl4-uQ",
+        "token_type": "bearer"
+    },
+    "message": "Login successfully"
+}
