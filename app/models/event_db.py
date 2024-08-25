@@ -9,9 +9,6 @@ import logging
 from ..schemas.event import Event as EventSchema
 from ..ext.error import ElasticsearchError, UserNotFoundError
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, filename='app_errors.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
-
 # Load environment variables
 try:
     load_dotenv(find_dotenv())

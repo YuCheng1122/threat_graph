@@ -6,10 +6,13 @@ from sqlalchemy.orm import sessionmaker, relationship
 from app.ext.error import ElasticsearchError
 from dotenv import load_dotenv
 import logging
-from typing import Dict, List
-
+from typing import List
+from logging import getLogger
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
+
+# Get the centralized logger
+logger = getLogger('app_logger')
 
 # Load environment variables from .env file
 load_dotenv()
@@ -93,8 +96,8 @@ class UserModel:
             result = session.execute(stmt).first()
             session.close()
             has_permission = result is not None
-            logging.info(f"User {user_id} permission check for group {group_name}: {has_permission}")
+            logger.info(f"User {user_id} permission check for group {group_name}: {has_permission}")
             return has_permission
         except Exception as e:
-            logging.error(f"Database error in check_user_group: {e}")
+            logger.error(f"Database error in check_user_group: {e}")
             raise ElasticsearchError(f'Database error: {e}', 500)

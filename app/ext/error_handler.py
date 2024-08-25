@@ -1,89 +1,73 @@
-from fastapi import Request, FastAPI
+from fastapi import Request, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from app.ext.error import (
-    GraphControllerError, ElasticsearchError, RequestParamsError,
-    UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError,
-    UserDisabledError, InvalidTokenError, UnauthorizedError, PermissionError
-)
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
+from .error import * 
+from typing import Union, Type
 
-# Base custom error handler
+# Create a mapping of status codes to error classes
+ERROR_CLASS_MAP: dict[int, Type[BaseCustomError]] = {
+    400: BadRequestError,
+    401: UnauthorizedError,
+    403: ForbiddenError,
+    404: NotFoundError,
+    405: MethodNotAllowedError,
+    409: ConflictError,
+    415: UnsupportedMediaTypeError,
+    422: UnprocessableEntityError,
+    500: InternalServerError,
+}
+
+def get_error_class(status_code: int) -> Type[BaseCustomError]:
+    return ERROR_CLASS_MAP.get(status_code, HTTPError)
+
 async def custom_error_handler(request: Request, exc: Exception):
-    if isinstance(exc, (GraphControllerError, ElasticsearchError, RequestParamsError,
-                        UserNotFoundError, AuthControllerError, InvalidPasswordError, 
-                        UserExistedError, UserDisabledError, InvalidTokenError, 
-                        UnauthorizedError, PermissionError)):
+    if isinstance(exc, BaseCustomError):
         return JSONResponse(
             status_code=exc.status_code,
-            content={"success": False, "message": exc.message}
+            content=exc.to_dict()
         )
     # General exception handler
     return JSONResponse(
         status_code=500,
-        content={"success": False, "message": "An unexpected error occurred."}
+        content=InternalServerError().to_dict()
     )
 
-async def general_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"success": False, "message": "An unexpected error occurred."}
-    )
-
-async def graph_controller_error_handler(request: Request, exc: GraphControllerError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def not_found_user_error_handler(request: Request, exc: UserNotFoundError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def elasticsearch_error_handler(request: Request, exc: ElasticsearchError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def request_params_error_handler(request: Request, exc: RequestParamsError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-
-# -----------------------------------------------------------------------------------------------------------
-
-from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
-
-
-async def user_not_found_error_handler(request: Request, exc: UserNotFoundError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def auth_controller_error_handler(request: Request, exc: AuthControllerError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def invalid_password_error_handler(request: Request, exc: InvalidPasswordError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def user_existed_error_handler(request: Request, exc: UserExistedError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def user_disabled_error_handler(request: Request, exc: UserDisabledError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-async def invalid_token_error_handler(request: Request, exc: InvalidTokenError):
-    return JSONResponse(status_code=exc.status_code, content={"success": False, "message": exc.message})
-
-
-def add_error_handlers(app: FastAPI):
-    # Add handlers for all custom exceptions
-    custom_exceptions = [
-        GraphControllerError, ElasticsearchError, RequestParamsError,
-        UserNotFoundError, AuthControllerError, InvalidPasswordError, 
-        UserExistedError, UserDisabledError, InvalidTokenError, 
-        UnauthorizedError, PermissionError
-    ]
-    
-    for exception in custom_exceptions:
-        app.add_exception_handler(exception, custom_error_handler)
-    
-    # Add general exception handler
-    app.add_exception_handler(Exception, custom_error_handler)
-    
-# ----------------------------------------------------------------------------------------------------------- Wazuh 
-
-async def unauthorized_error_handler(request: Request, exc: UnauthorizedError):
+async def http_exception_handler(request: Request, exc: HTTPException):
+    error_class = get_error_class(exc.status_code)
     return JSONResponse(
         status_code=exc.status_code,
-        content={"success": False, "message": exc.message}
+        content=error_class(str(exc.detail)).to_dict()
     )
+
+async def validation_exception_handler(request: Request, exc: Union[RequestValidationError, ValidationError]):
+    return JSONResponse(
+        status_code=422,
+        content=UnprocessableEntityError("Unprocessable Entity").to_dict()
+    )
+
+def add_error_handlers(app: FastAPI):
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(ValidationError, validation_exception_handler)
+    app.add_exception_handler(Exception, custom_error_handler)
+
+    # Add specific handlers for custom error classes
+    for error_class in BaseCustomError.__subclasses__():
+        app.add_exception_handler(
+            error_class,
+            lambda request, exc: JSONResponse(
+                status_code=exc.status_code,
+                content=exc.to_dict()
+            )
+        )
+
+    # Add handlers for specific status codes
+    for status_code, error_class in ERROR_CLASS_MAP.items():
+        app.add_exception_handler(
+            status_code,
+            lambda request, exc, sc=status_code: JSONResponse(
+                status_code=sc,
+                content=get_error_class(sc)().to_dict()
+            )
+        )

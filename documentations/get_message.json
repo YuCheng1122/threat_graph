@@ -1,0 +1,14 @@
+{
+    "total": 100,
+    "datas": [
+        {
+            "id": 1,
+            "time": "2023-07-30T12:00:00Z",
+            "agent_id": "001",
+            "rule_description": "Unauthorized access attempt",
+            "rule_mitre_tactic": "Initial Access",
+            "rule_mitre_id": "T1078",
+            "rule_level": 5
+        }
+    ]
+}

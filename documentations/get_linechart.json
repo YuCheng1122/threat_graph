@@ -1,0 +1,276 @@
+{
+    "label": [
+        "Interface entered in promiscuous(sniffing) mode.",
+        "Windows logon success.",
+        "Syscollector network interface event.",
+        "sshd: Attempt to login using a non-existent user",
+        "The VSS service is shutting down due to idle timeout.",
+        "Service startup type was changed",
+        "Software protection service scheduled successfully.",
+        "Listened ports status (netstat) changed (new port opened or closed).",
+        "Windows application error event.",
+        "Windows User Logoff."
+    ],
+    "datas": [
+        {
+            "name": "Interface entered in promiscuous(sniffing) mode.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    423
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    1190
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    494
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Windows logon success.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    207
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    408
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    122
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Syscollector network interface event.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    56
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    152
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    46
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "sshd: Attempt to login using a non-existent user",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    76
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    97
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    15
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "The VSS service is shutting down due to idle timeout.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    55
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    76
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    12
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Service startup type was changed",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    15
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    50
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    11
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Software protection service scheduled successfully.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    14
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    26
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    6
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Listened ports status (netstat) changed (new port opened or closed).",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    7
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    25
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    0
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Windows application error event.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    25
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    1
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    0
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        },
+        {
+            "name": "Windows User Logoff.",
+            "type": "line",
+            "data": [
+                [
+                    "2024-08-09T00:00:00Z",
+                    11
+                ],
+                [
+                    "2024-08-09T18:01:00Z",
+                    0
+                ],
+                [
+                    "2024-08-10T12:02:00Z",
+                    11
+                ],
+                [
+                    "2024-08-11T06:03:00Z",
+                    2
+                ],
+                [
+                    "2024-08-12T00:04:00Z",
+                    0
+                ]
+            ]
+        }
+    ]
+}

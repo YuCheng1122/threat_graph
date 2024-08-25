@@ -1,0 +1,14 @@
+{
+    "agents": [
+        {
+            "id": 1,
+            "agent_name": "Agent 001",
+            "data": 50
+        },
+        {
+            "id": 2,
+            "agent_name": "Agent 002",
+            "data": 30
+        }
+    ]
+}
