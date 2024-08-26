@@ -10,9 +10,15 @@ import json
 from dotenv import load_dotenv, find_dotenv
 from ..schemas.wazuh import Agent as AgentSchema, WazuhEvent
 from ..ext.error import ElasticsearchError, UserNotFoundError
+from logging import getLogger
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, filename='app_errors.log', filemode='a', format='%(asctime)s - %(levelname)s - %(message)s')
+# Get the centralized logger
+logger = getLogger('app_logger')
+try:
+    load_dotenv(find_dotenv())
+except Exception as e:
+    logger.error(f"Error loading .env file: {str(e)}")
+    raise
 
 # Load environment variables
 try:
@@ -64,15 +70,9 @@ def create_index_with_mapping():
         }
         try:
             es.indices.create(index=index_name, body=mapping)
-            logging.info(f"Created new index with mapping: {index_name}")
         except RequestError as e:
-            if e.error == 'resource_already_exists_exception':
-                logging.info(f"Index {index_name} already exists, skipping creation")
-            else:
-                logging.error(f"Error creating index {index_name}: {str(e)}")
+                logger.error(f"Error creating index {index_name}: {str(e)}")
                 raise
-    else:
-        logging.info(f"Index {index_name} already exists, using existing index")
     return index_name
 
 def get_index_name():
@@ -86,7 +86,7 @@ def handle_es_exceptions(func):
         except NotFoundError as e:
             raise UserNotFoundError(str(e), 404)
         except Exception as e:
-            logging.error(f"Elasticsearch error in {func.__name__}: {str(e)}")
+            logger.error(f"Elasticsearch error in {func.__name__}: {str(e)}")
             raise ElasticsearchError(f"Elasticsearch error: {str(e)}", 500)
     return wrapper
 
@@ -127,13 +127,11 @@ class AgentModel:
         try:
             index_name = get_index_name()
             agent_dict = agent.to_dict()
-            logging.info(f"Saving agent info: {agent_dict}")
-            logging.info(f"Agent status being saved: {agent_dict['agent_status']}")
             result = es.index(index=index_name, id=f"agent_{agent.agent_id}", body=agent_dict)
-            logging.info(f"Agent {agent.agent_id} saved successfully. Result: {result}")
+            logger.info(f"Agent {agent.agent_id} saved successfully. Result: {result}")
             return result
         except Exception as e:
-            logging.error(f"Error saving agent {agent.agent_id} to Elasticsearch: {str(e)}")
+            logger.error(f"Error saving agent {agent.agent_id} to Elasticsearch: {str(e)}")
             raise
 
     @staticmethod
@@ -166,29 +164,14 @@ class AgentModel:
 
             if group_names:
                 query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
-
-            logging.info(f"Elasticsearch query: {json.dumps(query, indent=2)}")
-            
+         
             index_name = get_index_name()
-            logging.info(f"Using index: {index_name}")
-            
             response = es.search(index=index_name, body=query)
             
             agents = [hit['_source'] for hit in response['hits']['hits']]
-            total_hits = response['hits']['total']['value']
-            
-            logging.info(f"Total hits: {total_hits}")
-            logging.info(f"Loaded {len(agents)} agents from Elasticsearch")
-            
-            if agents:
-                logging.info(f"First agent: {json.dumps(agents[0], indent=2)}")
-                logging.info(f"Last agent: {json.dumps(agents[-1], indent=2)}")
-            else:
-                logging.warning("No agents found")
-            
             return agents
         except Exception as e:
-            logging.error(f"Unexpected error in load_agents: {str(e)}")
+            logger.error(f"Unexpected error in load_agents: {str(e)}")
             raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
     
 class EventModel:
@@ -232,6 +215,7 @@ class EventModel:
             result = es.index(index=index_name, body=event_dict)
             logging.info(f"Event for agent {event.agent_id} saved successfully. Result: {result}")
             return result
+                
         except Exception as e:
             logging.error(f"Error saving event for agent {event.agent_id} to Elasticsearch: {str(e)}")
             raise

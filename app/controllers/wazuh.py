@@ -45,7 +45,6 @@ class AgentController:
         """
         logging.info(f"Checking permission for user {user.username} (id: {user.id}, role: {user.user_role}) for group {group_name}")
         if user.disabled:
-            logging.warning(f"User {user.username} is disabled")
             raise PermissionError("User account is disabled")
         if user.user_role == 'admin':
             logging.info(f"User {user.username} is admin, granting permission")
@@ -103,6 +102,11 @@ class AgentController:
                         
             logging.info(f"Retrieved {len(agents)} agents and {len(events)} events")
             return {"agents": agents, "events": events}
+
+        # error type : write own defined error handler, such as what kind of db error,
+        
+
+
         except Exception as e:
             logging.error(f"Error in get_group_agents_and_events: {str(e)}")
             logging.error(traceback.format_exc())
@@ -295,11 +299,21 @@ class AgentController:
 
             if agent_id:
                 agents_counter[agent_id] += 1
-                agent_event_counter[agent_id] += 1
             if mitre_technique:
                 mitre_counter[mitre_technique] += 1
             if rule_description:
                 events_counter[rule_description] += 1
+        # Identify the top 5 events based on rule_description count
+        top_5_events = events_counter.most_common(5)
+
+        # Find the agent IDs associated with these top 5 events
+        for event in events:
+            event_data = event['_source']
+            agent_id = event_data.get('agent_id', '')
+            rule_description = event_data.get('rule_description', '')
+
+            if rule_description in dict(top_5_events) and agent_id:
+                agent_event_counter[agent_id] += 1
 
         def get_top_5(counter):
             items = []
