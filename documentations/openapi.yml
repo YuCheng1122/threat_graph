@@ -2,12 +2,169 @@ openapi: 3.0.0
 info:
   title: Wazuh Agent API
   version: 1.0.0
-  description: API for managing Wazuh agents and events
+  description:  |
+    API for managing Wazuh agents and events
+
+    **Note**: If you are using `curl` to make requests to the API in a testing or development environment with self-signed SSL certificates, you may need to use the `-k` option to ignore SSL certificate verification errors.
+
+    Example:
+    ```
+    curl -k -X POST https://your-api-server.com/api/endpoint \
+         -H "Content-Type: application/json" \
+         -H "Authorization: Bearer <token>" \
+         -d '{"key":"value"}'
+    ```
+
+servers:
+  - url: https://202.5.255.223
+    description: Production server
 
 paths:
+  /api/auth/login:
+    post:
+      summary: User login
+      tags:
+        - Post
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /agent_info:
+    post:
+      summary: Save agent info and events
+      tags:
+        - Post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agents:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Agent'
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WazuhEvent'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentInfoResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
+  /api/wazuh/agents/summary:
+    get:
+      summary: Get agent summary
+      tags:
+        - Get
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: start_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: end_time
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentSummaryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+
   /api/wazuh/messages:
     get:
       summary: Get agent messages
+      tags:
+        - Get
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: start_time
@@ -38,6 +195,18 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -45,6 +214,10 @@ paths:
   /api/wazuh/line-chart:
     get:
       summary: Get line chart data
+      tags:
+        - Get
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: start_time
@@ -69,6 +242,18 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -76,6 +261,10 @@ paths:
   /api/wazuh/total-event:
     get:
       summary: Get total event count
+      tags:
+        - Get
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: start_time
@@ -96,11 +285,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TotalEventResponse'
-
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -108,6 +308,10 @@ paths:
   /api/wazuh/pie-chart:
     get:
       summary: Get pie chart data
+      tags:
+        - Get
+      security:
+        - bearerAuth: []
       parameters:
         - in: query
           name: start_time
@@ -132,127 +336,123 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
 
-  /agent_info:
-    post:
-      summary: Save agent info and events
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                agents:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Agent'
-                events:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/WazuhEvent'
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentInfoResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-
-  /api/wazuh/agents/summary:
-    get:
-      summary: Get agent summary
-      parameters:
-        - in: query
-          name: start_time
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - in: query
-          name: end_time
-          required: true
-          schema:
-            type: string
-            format: date-time
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentSummaryResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-
-  /api/auth/login:
-    post:
-      summary: User login
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-              required:
-                - username
-                - password
-      responses:
-        '200':
-          description: Successful login
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
 components:
-
   responses:
-
       BadRequest:
         description: Bad Request
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
       Unauthorized:
         description: Unauthorized
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
+      Forbidden:
+        description: Forbidden
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
+      NotFound:
+        description: NotFound
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: "Incorrect username or password"
+
+      MethodNotAllowed:
+        description: Method Not Allowed
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
+      Conflict:
+        description: Conflict
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
+      UnsupportedMediaType:
+        description: Unsupported Media Type
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
+
+      UnprocessableEntity:
+        description: Unprocessable Entity
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: "Unprocessable Entity"
+
       InternalServerError:
         description: Internal Server Error
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ErrorResponse'
+            example:
+              success: false
+              content: null
+              message: ""
 
   schemas:
     AgentMessage:
@@ -326,7 +526,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LineData'
-
 
     LineChartRequest:
       type: object
@@ -541,6 +740,8 @@ components:
       properties:
         success:
           type: boolean
+        content:
+          type: string
         message:
           type: string
   
@@ -579,7 +780,8 @@ components:
           token_type: "bearer"
         message: "Login successfully"
 
-    
-        
-
-
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
