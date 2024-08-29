@@ -364,7 +364,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Bad Request"
 
       Unauthorized:
         description: Unauthorized
@@ -375,7 +375,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Invalid token"
 
       Forbidden:
         description: Forbidden
@@ -386,7 +386,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Permission denied"
 
       NotFound:
         description: NotFound
@@ -397,7 +397,7 @@ components:
             example:
               success: false
               content: null
-              message: "Incorrect username or password"
+              message: "User not found"
 
       MethodNotAllowed:
         description: Method Not Allowed
@@ -408,7 +408,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Method Not Allowed"
 
       Conflict:
         description: Conflict
@@ -419,7 +419,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Conflict"
 
       UnsupportedMediaType:
         description: Unsupported Media Type
@@ -430,7 +430,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Unsupported Media Type"
 
       UnprocessableEntity:
         description: Unprocessable Entity
@@ -452,7 +452,7 @@ components:
             example:
               success: false
               content: null
-              message: ""
+              message: "Internal Server Error"
 
   schemas:
     AgentMessage:
