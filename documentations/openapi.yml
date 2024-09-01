@@ -2,18 +2,7 @@ openapi: 3.0.0
 info:
   title: Wazuh Agent API
   version: 1.0.0
-  description:  |
-    API for managing Wazuh agents and events
-
-    **Note**: If you are using `curl` to make requests to the API in a testing or development environment with self-signed SSL certificates, you may need to use the `-k` option to ignore SSL certificate verification errors.
-
-    Example:
-    ```
-    curl -k -X POST https://your-api-server.com/api/endpoint \
-         -H "Content-Type: application/json" \
-         -H "Authorization: Bearer <token>" \
-         -d '{"key":"value"}'
-    ```
+  description: API for managing Wazuh agents and events
 
 servers:
   - url: https://202.5.255.223
@@ -46,23 +35,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+
         '500':
           $ref: '#/components/responses/InternalServerError'
 
 
-  /agent_info:
+
+  /api/wazuh/info:
     post:
       summary: Save agent info and events
       tags:
@@ -97,14 +78,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -138,20 +111,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentSummaryResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -191,20 +154,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentMessagesResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -238,20 +191,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LineChartResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -285,20 +228,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TotalEventResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -332,20 +265,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PieChartResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
