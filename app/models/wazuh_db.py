@@ -2,29 +2,22 @@ from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, RequestError
-from elasticsearch.helpers import scan
 import os
 import logging
 from functools import wraps
-import json
 from dotenv import load_dotenv, find_dotenv
-from ..schemas.wazuh import Agent as AgentSchema, WazuhEvent
-from ..ext.error import ElasticsearchError, UserNotFoundError
+from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent
+from app.ext.error import ElasticsearchError, UserNotFoundError
 from logging import getLogger
 
 # Get the centralized logger
 logger = getLogger('app_logger')
-try:
-    load_dotenv(find_dotenv())
-except Exception as e:
-    logger.error(f"Error loading .env file: {str(e)}")
-    raise
 
 # Load environment variables
 try:
     load_dotenv(find_dotenv())
 except Exception as e:
-    logging.error(f"Error loading .env file: {str(e)}")
+    logger.error(f"Error loading .env file: {str(e)}")
     raise
 
 # Create a single Elasticsearch instance
@@ -128,7 +121,6 @@ class AgentModel:
             index_name = get_index_name()
             agent_dict = agent.to_dict()
             result = es.index(index=index_name, id=f"agent_{agent.agent_id}", body=agent_dict)
-            logger.info(f"Agent {agent.agent_id} saved successfully. Result: {result}")
             return result
         except Exception as e:
             logger.error(f"Error saving agent {agent.agent_id} to Elasticsearch: {str(e)}")
@@ -218,7 +210,7 @@ class EventModel:
                 
         except Exception as e:
             logging.error(f"Error saving event for agent {event.agent_id} to Elasticsearch: {str(e)}")
-            raise
+            raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
 
     @staticmethod
     @handle_es_exceptions
@@ -235,8 +227,11 @@ class EventModel:
             },
             "size": MAX_RESULTS
         }
-        response = es.search(index=get_index_name(), body=query)
-        return [hit['_source'] for hit in response['hits']['hits']]
+        try:
+            response = es.search(index=get_index_name(), body=query)
+            return [hit['_source'] for hit in response['hits']['hits']]
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting events: {str(e)}")
 
     @staticmethod
     @handle_es_exceptions
@@ -253,9 +248,12 @@ class EventModel:
             },
             "size": MAX_RESULTS
         }
-        response = es.search(index=get_index_name(), body=query)
-        return [hit['_source'] for hit in response['hits']['hits']]
-    
+        try:
+            response = es.search(index=get_index_name(), body=query)
+            return [hit['_source'] for hit in response['hits']['hits']]
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting events: {str(e)}")
+        
     @staticmethod
     @handle_es_exceptions
     async def load_all_events_from_elasticsearch(start_time: datetime, end_time: datetime) -> List[Dict]:
@@ -270,9 +268,12 @@ class EventModel:
             },
             "size": MAX_RESULTS
         }
-        response = es.search(index=get_index_name(), body=query)
-        return [hit['_source'] for hit in response['hits']['hits']]
-    
+        try:
+            response = es.search(index=get_index_name(), body=query)
+            return [hit['_source'] for hit in response['hits']['hits']]
+        except Exception as e:
+            raise ElasticsearchError(f"Error getting events: {str(e)}")
+        
     @staticmethod
     async def get_events_in_timerange(start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
         query = {

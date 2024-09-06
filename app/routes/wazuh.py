@@ -1,19 +1,20 @@
-import traceback
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query
 from app.schemas.wazuh import (
     AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse,AgentMessagesResponse, AgentMessagesRequest, 
     LineChartRequest, LineChartResponse, TotalEventAPIResponse, TotalEventRequest, TotalEventResponse,
     PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent
 )
-from fastapi.responses import JSONResponse
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController
 from app.models.user_db import UserModel
 from app.ext.error import UnauthorizedError, ElasticsearchError, PermissionError, InternalServerError
 from datetime import datetime
 from typing import Dict
-import logging
 from dateutil.tz import tzutc
+from logging import getLogger
+
+# Get the centralized logger
+logger = getLogger('app_logger')
 
 router = APIRouter()
 
@@ -24,6 +25,28 @@ async def post_agent_info(
 ):
     """
     Endpoint to post agent information and events.
+
+    Request:
+    curl -X 'POST' \
+      'https://flask.aixsoar.com/api/wazuh/info' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]' \
+      -H 'Content-Type: application/json' \
+      -d '[json content]'
+
+    Response:
+    {
+      "message": "Agents info and events saved successfully",
+      "agent_ids": [
+        "001",
+        "002"
+      ],
+      "events_saved": {
+        "001": 5,
+        "002": 3
+      }
+    }
+    
     """
     try:
         agent_ids = []
@@ -46,17 +69,11 @@ async def post_agent_info(
 
         return AgentInfoResponse(success=True, content=response_content)
     
-    except (UnauthorizedError, PermissionError) as e:
-        return JSONResponse(
-            status_code=e.status_code,
-            content=e.to_dict()
-        )
+    except (UnauthorizedError, PermissionError):
+        raise
     except Exception as e:
-        error = InternalServerError(str(e))
-        return JSONResponse(
-            status_code=error.status_code,
-            content=error.to_dict()
-        )
+        logger.error(f"Error in get_agent_info endpoint: {e}")
+        raise InternalServerError()
           
 @router.get("/agents/summary", response_model=AgentSummaryResponse)
 async def get_agent_summary(
@@ -66,13 +83,66 @@ async def get_agent_summary(
 ):
     """
     Endpoint to get a summary of agent information within a specified time range.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/agents/summary?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer Token'
+
+    Response:
+    {
+      "agents": [
+        {
+        "id": 1,
+        "agent_name": "Active agents",
+        "data": 0
+        },
+        {
+        "id": 2,
+        "agent_name": "Total agents",
+        "data": 0
+        },
+        {
+        "id": 3,
+        "agent_name": "Active Windows agents",
+        "data": 0
+        },
+        {
+        "id": 4,
+        "agent_name": "Windows agents",
+        "data": 0
+        },
+        {
+        "id": 5,
+        "agent_name": "Active Linux agents",
+        "data": 0
+        },
+        {
+        "id": 6,
+        "agent_name": "Linux agents",
+        "data": 0
+        },
+        {
+        "id": 7,
+        "agent_name": "Active MacOS agents",
+        "data": 0
+        },
+        {
+        "id": 8,
+        "agent_name": "MacOS agents",
+        "data": 0
+        }
+      ]
+    }
+    
     """
     try:
         summary = await AgentController.get_agent_summary(user=current_user, start_time=start_time, end_time=end_time)
         return AgentSummaryResponse(agents=summary)
     except Exception as e:
-        logging.error(f"Error in get_agent_summary endpoint: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        logger.error(f"Error in get_agent_summary endpoint: {e}")
+        raise InternalServerError()
 
 @router.get("/messages", response_model=AgentMessagesResponse)
 async def get_agent_messages(
@@ -81,6 +151,29 @@ async def get_agent_messages(
 ):
     """
     Endpoint to get recent high-level messages (rule_level > 8) for all agents the user has access to.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/messages?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "total": 0,
+      "datas": [
+        {
+          "id": 0,
+          "time": "string",
+          "agent_id": "string",
+          "rule_description": "string",
+          "rule_mitre_tactic": "string",
+          "rule_mitre_id": "string",
+          "rule_level": 0
+        }
+      ]
+    }
+    
     """
     try:
         messages = await AgentController.get_messages(
@@ -91,16 +184,15 @@ async def get_agent_messages(
         )
         return messages
     except UnauthorizedError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        raise UnauthorizedError("Authentication required")
     except PermissionError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+        raise PermissionError("Permission denied")
     except ElasticsearchError as e:
-        logging.error(f"Elasticsearch error: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Database error")
+        logger.error(f"Elasticsearch error: {e}")
+        raise ElasticsearchError("Database error")
     except Exception as e:
-        logging.error(f"Error in get_agent_messages endpoint: {str(e)}")
-        logging.error(traceback.format_exc())
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+        logger.error(f"Error in get_agent_messages endpoint: {e}")
+        raise InternalServerError()
     
 @router.get("/line-chart", response_model=LineChartResponse)
 async def get_line_chart_data(
@@ -109,6 +201,32 @@ async def get_line_chart_data(
 ):
     """
     Endpoint to get line chart data for top rule descriptions over the specified time range.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/line-chart?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "label": [
+        "string"
+      ],
+      "datas": [
+        {
+          "name": "string",
+          "type": "string",
+          "data": [
+            [
+              "2024-09-05T07:37:55.211Z",
+              0
+            ]
+          ]
+        }
+      ]
+    }
+    
     """
     try:
         start_time_utc = request.start_time.replace(tzinfo=tzutc())
@@ -116,16 +234,16 @@ async def get_line_chart_data(
         
         chart_data = await AgentController.get_line_chart_data(start_time_utc, end_time_utc)
         return chart_data
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid date format: {str(e)}")
     except UnauthorizedError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        raise UnauthorizedError("Authentication required")
     except PermissionError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+        raise PermissionError("Permission denied")
     except ElasticsearchError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+        logger.error(f"Elasticsearch error: {e}")
+        raise ElasticsearchError("Database error")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error in get_agent_line-chart endpoint: {e}")
+        raise InternalServerError()
 
 @router.get("/total-event", response_model=TotalEventAPIResponse)
 async def get_total_event(
@@ -134,21 +252,36 @@ async def get_total_event(
 ):
     """
     Endpoint to get the total count of events (levels 8-14) within a specified time range.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/total-event?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "success": true,
+      "content": {
+        "count": "string"
+      }
+    }
+    
     """
     try:
         count = await AgentController.get_total_event_count(request.start_time, request.end_time)
         return TotalEventAPIResponse(success=True, content=TotalEventResponse(count=count))
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except UnauthorizedError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        raise UnauthorizedError("Authentication required")
     except PermissionError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+        raise PermissionError("Permission denied")
     except ElasticsearchError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+        logger.error(f"Elasticsearch error: {e}")
+        raise ElasticsearchError("Database error")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")
-    
+        logger.error(f"Error in get_agent_line-chart endpoint: {e}")
+        raise InternalServerError()
+
 @router.get("/pie-chart", response_model=PieChartAPIResponse)
 async def get_pie_chart_data(
     request: PieChartRequest = Depends(),
@@ -156,17 +289,55 @@ async def get_pie_chart_data(
 ):
     """
     Endpoint to get pie chart data including Top 5 agents, Top MITRE ATT&CKs, Top 5 Events, and Top 5 Event Counts by Agent Name.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/pie-chart?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "success": true,
+      "content": {
+        "top_agents": [
+          {
+            "value": 0,
+            "name": "string"
+          }
+        ],
+        "top_mitre": [
+          {
+            "value": 0,
+            "name": "string"
+          }
+        ],
+        "top_events": [
+          {
+            "value": 0,
+            "name": "string"
+          }
+        ],
+        "top_event_counts": [
+          {
+            "value": 0,
+            "name": "string"
+          }
+        ]
+      }
+    }
+    
     """
     try:
         pie_chart_data = await AgentController.get_pie_chart_data(request.start_time, request.end_time)
         return PieChartAPIResponse(success=True, content=pie_chart_data)
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except UnauthorizedError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        raise UnauthorizedError("Authentication required")
     except PermissionError:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied")
+        raise PermissionError("Permission denied")
     except ElasticsearchError as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {str(e)}")
+        logger.error(f"Elasticsearch error: {e}")
+        raise ElasticsearchError("Database error")
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error in get_agent_line-chart endpoint: {e}")
+        raise InternalServerError()
