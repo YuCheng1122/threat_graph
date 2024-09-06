@@ -1,6 +1,4 @@
-from typing import List, Dict, Any
-import logging
-import json
+from typing import List, Dict
 from collections import defaultdict, Counter
 from functools import wraps
 from app.models.wazuh_db import AgentModel, EventModel
@@ -9,9 +7,12 @@ from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent, PieChartData, Pi
 from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData
 from app.ext.error import ElasticsearchError, UnauthorizedError, PermissionError, HTTPError, UserNotFoundError
 from datetime import datetime
-import traceback
 from dateutil.parser import parse
 from dateutil.tz import tzutc
+from logging import getLogger
+
+# Get the centralized logger
+logger = getLogger('app_logger')
 
 def handle_exceptions(func):
     """
@@ -21,18 +22,16 @@ def handle_exceptions(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except UserNotFoundError as e:
-            logging.error(f"User not found in {func.__name__}: {str(e)}")
-            raise HTTPError(status_code=404, detail="User not found")
-        except (UnauthorizedError, PermissionError) as e:
-            logging.error(f"Access denied in {func.__name__}: {str(e)}")
-            raise HTTPError(status_code=403, detail="Access denied")
+        except UserNotFoundError:
+            raise UserNotFoundError()
+        except UnauthorizedError:
+            raise UnauthorizedError("Authentication required")
+        except PermissionError:
+            raise PermissionError("Permission denied")
         except ElasticsearchError as e:
-            logging.error(f"Elasticsearch error in {func.__name__}: {str(e)}")
-            raise HTTPError(status_code=500, detail="Database error")
+            raise ElasticsearchError("Database error")
         except Exception as e:
-            logging.error(f"Unexpected error in {func.__name__}: {str(e)}")
-            logging.error(traceback.format_exc())
+            logger.error(f"Unexpected error in {func.__name__}: {e}")
             raise HTTPError(status_code=500, detail="Internal server error")
     return wrapper
 
@@ -43,18 +42,14 @@ class AgentController:
         """
         Check if a user has permission to access a specific group, we will check db table to verify user's permission.
         """
-        logging.info(f"Checking permission for user {user.username} (id: {user.id}, role: {user.user_role}) for group {group_name}")
         if user.disabled:
             raise PermissionError("User account is disabled")
         if user.user_role == 'admin':
-            logging.info(f"User {user.username} is admin, granting permission")
             return
         has_permission = UserModel.check_user_group(user.id, group_name)
         if not has_permission:
-            logging.warning(f"Permission denied for user {user.username} for group {group_name}")
             raise PermissionError("Permission denied")
-        logging.info(f"Permission granted for user {user.username} for group {group_name}")
-
+        
     @staticmethod
     @handle_exceptions
     async def save_agent_info(agent: AgentSchema) -> None:
@@ -62,22 +57,18 @@ class AgentController:
         Save agent information to Elasticsearch.
         """
         agent_model = AgentModel(agent)
-        logging.info(f"Saving agent info: {agent_model.to_dict()}")
         result = AgentModel.save_to_elasticsearch(agent_model)
-        logging.info(f"Agent info saved for agent ID: {agent.agent_id}. Result: {result}")
-
+        
     @staticmethod
     @handle_exceptions
     async def get_agent_events(agent_id: str, start_time: datetime, end_time: datetime, user: UserModel) -> List[Dict]:
         """
         Retrieve agent events for a specific time range.
         """
-        logging.info(f"Fetching agent events for agent_id={agent_id} from {start_time} to {end_time}")
         agent = await AgentModel.load_from_elasticsearch(agent_id)
         if user.user_role != 'admin':
             await AgentController.check_user_permission(user, agent['group_name'])
         events = await EventModel.load_from_elasticsearch_with_time_range(agent_id, start_time, end_time)
-        logging.info(f"Events data fetched: {events}")
         return events
 
     @staticmethod
@@ -86,30 +77,20 @@ class AgentController:
         """
         Retrieve agents and events for a user's groups within a specific time range.
         """
-        logging.info(f"Fetching group agents and events for user={user.username} from {start_time} to {end_time}")
         try:
             if user.user_role == 'admin':
-                logging.info("User is admin, loading all agents and events")
                 agents = await AgentModel.load_all_agents()
                 events = await EventModel.load_all_events_from_elasticsearch(start_time, end_time)
             else:
-                logging.info(f"User is not admin, loading agents and events for user groups")
                 user_groups = UserModel.get_user_groups(user.username)
-                logging.info(f"User groups: {user_groups}")
                 group_names = [group['group_name'] for group in user_groups]
                 agents = await AgentModel.load_agents_by_groups(group_names)
                 events = await EventModel.load_group_events_from_elasticsearch(group_names, start_time, end_time)
                         
-            logging.info(f"Retrieved {len(agents)} agents and {len(events)} events")
             return {"agents": agents, "events": events}
 
-        # error type : write own defined error handler, such as what kind of db error,
-        
-
-
         except Exception as e:
-            logging.error(f"Error in get_group_agents_and_events: {str(e)}")
-            logging.error(traceback.format_exc())
+            logger.error(f"Error in get_group_agents_and_events: {str(e)}")
             raise
 
     @staticmethod
@@ -127,22 +108,17 @@ class AgentController:
     @staticmethod
     @handle_exceptions
     async def get_agent_summary(user: UserModel, start_time: datetime, end_time: datetime) -> List[AgentSummary]:
-        logging.info(f"Fetching agent summary for user_id={user.id} from {start_time} to {end_time}")
         
         if user.user_role == 'admin':
             group_names = None  # Admin can see all groups
         else:
             group_names = UserModel.get_user_groups(user.id)  # Remove await here
-            logging.info(f"User groups: {group_names}")
             if not group_names:
-                logging.warning(f"No groups found for user {user.id}")
                 return []
 
         agents = await AgentModel.load_agents(start_time, end_time, group_names)
 
-        logging.info(f"Retrieved {len(agents)} agents")
         summary = AgentController.calculate_agent_summary(agents)
-        logging.info(f"Agent summary: {json.dumps([s.dict() for s in summary], indent=2)}")
         return summary
 
     @staticmethod
@@ -156,15 +132,11 @@ class AgentController:
         macos_agents = 0
         active_macos_agents = 0
 
-        logging.info(f"Processing {total_agents} agents")
-
+        
         for idx, agent in enumerate(agents, 1):
-            logging.debug(f"Processing agent {idx}/{total_agents}: {json.dumps(agent, indent=2)}")
             
             is_active = agent.get('agent_status', '').lower() == 'active'
             os_type = AgentController.determine_os(agent.get('os', ''))
-            
-            logging.debug(f"Agent {idx} - Is Active: {is_active}, OS Type: {os_type}")
 
             if is_active:
                 active_agents += 1
@@ -181,13 +153,6 @@ class AgentController:
                 macos_agents += 1
                 if is_active:
                     active_macos_agents += 1
-            else:
-                logging.warning(f"Unknown OS type for agent {idx}: {os_type}")
-
-        logging.info(f"Summary - Total: {total_agents}, Active: {active_agents}")
-        logging.info(f"Windows - Total: {windows_agents}, Active: {active_windows_agents}")
-        logging.info(f"Linux - Total: {linux_agents}, Active: {active_linux_agents}")
-        logging.info(f"MacOS - Total: {macos_agents}, Active: {active_macos_agents}")
 
         return [
             AgentSummary(id=1, agent_name="Active agents", data=active_agents),
@@ -208,13 +173,11 @@ class AgentController:
         """
         Retrieve high-level messages (rule_level > 8) for all agents the user has access to within the specified time range.
         """
-        logging.info(f"Fetching high-level messages for user={user.username}, start_time={start_time}, end_time={end_time}, limit={limit}")
         
         # Check user permissions
         if user.user_role != 'admin':
             group_names = UserModel.get_user_groups(user.id)
             if not group_names:
-                logging.warning(f"No groups found for user {user.id}")
                 return AgentMessagesResponse(total=0, datas=[])
         else:
             group_names = None  # Admin can see all groups
@@ -236,10 +199,9 @@ class AgentController:
                 )
                 agent_messages.append(agent_message)
             except Exception as e:
-                logging.error(f"Error processing message: {e}")
+                logger.error(f"Error processing message: {e}")
                 continue
         
-        logging.info(f"Retrieved {len(agent_messages)} high-level messages out of {total_count} total")
         
         return AgentMessagesResponse(total=total_count, datas=agent_messages)
     
@@ -338,13 +300,8 @@ class AgentController:
         saved_count = 0
         for event in events:
             event_model = EventModel(event)
-            logging.info(f"Saving event: {event_model.to_dict()}")
             result = EventModel.save_to_elasticsearch(event_model)
             if result:  # Assuming save_to_elasticsearch returns True on success
                 saved_count += 1
-                logging.info(f"Event saved for agent ID: {event.agent_id}. Result: {result}")
-            else:
-                logging.warning(f"Failed to save event for agent ID: {event.agent_id}")
-        logging.info(f"Finished processing all events. Successfully saved {saved_count} events.")
         return saved_count
         
