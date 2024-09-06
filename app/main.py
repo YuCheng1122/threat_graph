@@ -1,4 +1,4 @@
-# third party package
+import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -20,6 +20,8 @@ load_dotenv()
 def setup_logger(name, log_file, level=logging.INFO):
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     
+    os.makedirs('./logs', exist_ok=True)
+        
     handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
     handler.setFormatter(formatter)
     
@@ -30,7 +32,7 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 # Create centralized logger
-app_logger = setup_logger('app_logger', 'app.log', level=logging.DEBUG)
+app_logger = setup_logger('app_logger', './logs/app.log', level=logging.DEBUG)
 
 app = FastAPI(
     title="AIXSOAR ATH API",

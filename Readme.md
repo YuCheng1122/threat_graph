@@ -14,7 +14,7 @@ This project is a web API application that includes configurations, controllers,
     ```bash
     sudo apt update && sudo apt upgrade -y && sudo apt autoremove
     sudo apt install tasksel
-    sudo tasksel # Select "web server"
+    sudo tasksel
     sudo apt install php libapache2-mod-php
     sudo systemctl restart apache2
     ```
