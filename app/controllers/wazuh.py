@@ -1,10 +1,10 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from collections import defaultdict, Counter
 from functools import wraps
 from app.models.wazuh_db import AgentModel, EventModel
 from app.models.user_db import UserModel
 from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent, PieChartData, PieChartItem
-from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData
+from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData, AgentDetailResponse
 from app.ext.error import ElasticsearchError, UnauthorizedError, PermissionError, HTTPError, UserNotFoundError
 from datetime import datetime
 from dateutil.parser import parse
@@ -132,7 +132,6 @@ class AgentController:
         macos_agents = 0
         active_macos_agents = 0
 
-        
         for idx, agent in enumerate(agents, 1):
             
             is_active = agent.get('agent_status', '').lower() == 'active'
@@ -165,7 +164,32 @@ class AgentController:
             AgentSummary(id=8, agent_name="MacOS agents", data=macos_agents),
         ]
     
-    # -------------------------------------------------------------------------------- Event logic 
+    @staticmethod
+    @handle_exceptions
+    async def get_agent_details(user: UserModel) -> List[AgentDetailResponse]:
+        if user.user_role == 'admin':
+            group_names = None  # Admin can see all groups
+        else:
+            print("else executed")
+            print(user.id)
+            group_names = UserModel.get_user_groups(user.id)
+            logger.info(f"group_names: {group_names}")
+            if not group_names:
+                return []
+
+        agent_data = AgentModel.get_latest_agent_details(group_names)
+        agent_details = []
+        for source in agent_data:
+            agent_details.append(AgentDetailResponse(
+                agent_name=source['agent_name'],
+                ip=source['ip'],
+                os=source['os'],
+                agent_status=source['agent_status'],
+                last_keep_alive=datetime.fromisoformat(source['last_keep_alive'].replace('Z', '+00:00'))
+                ))
+        return agent_details
+    
+    # -------------------------------------------------------------------------------- Events logic --------------------------------------------------------------------------------
 
     @staticmethod
     @handle_exceptions
@@ -191,7 +215,7 @@ class AgentController:
                 agent_message = AgentMessage(
                     id=i,
                     time=datetime.fromisoformat(msg.get('timestamp', '')).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
-                    agent_id=msg.get('agent_id', ''),
+                    agent_name=msg.get('agent_name', ''),
                     rule_description=msg.get('rule_description', ''),
                     rule_mitre_tactic=msg.get('rule_mitre_tactic'),
                     rule_mitre_id=msg.get('rule_mitre_id'),
@@ -201,8 +225,7 @@ class AgentController:
             except Exception as e:
                 logger.error(f"Error processing message: {e}")
                 continue
-        
-        
+        logger.info(f"Processed {len(agent_messages)} out of {len(messages)} messages")
         return AgentMessagesResponse(total=total_count, datas=agent_messages)
     
     @staticmethod

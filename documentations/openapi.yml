@@ -83,6 +83,90 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /api/wazuh/analysis:
+    post:
+      summary: Save event analysis
+      tags:
+        - Post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                  example: "2024-09-10T13:35:26.015+0800"
+                agent_id:
+                  type: string
+                  example: "010"
+                agent_ip:
+                  type: string
+                  example: "192.168.211.23"
+                agent_name:
+                  type: string
+                  example: "202.5.255.142"
+                description:
+                  type: string
+                  example: "[File modification]: Possible web shell content added in /usr/bin/phar8.1.phar"
+                level:
+                  type: integer
+                  example: 12
+                mitre_tactics:
+                  type: string
+                  example: "Command and Control, Persistence"
+                mitre_techniques:
+                  type: string
+                  example: "Ingress Tool Transfer, Server Software Component"
+                mitre_ids:
+                  type: string
+                  example: "T1105, T1505"
+                event_id:
+                  type: string
+                  example: "N/A"
+                process_id:
+                  type: string
+                  example: "N/A"
+                image:
+                  type: string
+                  example: "N/A"
+                target_filename:
+                  type: string
+                  example: "N/A"
+                system_message:
+                  type: string
+                  example: "N/A"
+                full_log:
+                  type: string
+                  example: "File '/usr/bin/phar8.1.phar' modified\nMode: scheduled\nChanged attributes: inode,mtime,md5,sha1,sha256..."
+                analysis_result:
+                  type: string
+                  example: ""
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Event analysis saved successfully."
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/wazuh/agents/summary:
     get:

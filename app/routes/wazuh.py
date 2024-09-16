@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from app.schemas.wazuh import (
     AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse,AgentMessagesResponse, AgentMessagesRequest, 
     LineChartRequest, LineChartResponse, TotalEventAPIResponse, TotalEventRequest, TotalEventResponse,
-    PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent
+    PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent, AgentDetailResponse, AgentDetailsAPIResponse
 )
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController
@@ -340,4 +340,45 @@ async def get_pie_chart_data(
         raise ElasticsearchError("Database error")
     except Exception as e:
         logger.error(f"Error in get_agent_line-chart endpoint: {e}")
+        raise InternalServerError()
+
+@router.get("/agent-details", response_model=AgentDetailsAPIResponse)
+async def get_agent_details(
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get the latest details of all agents including agent name, IP, OS, status code, and last keep alive.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/wazuh/agent-details' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "success": true,
+      "content": [
+        {
+          "agent_name": "string",
+          "ip": "string",
+          "os": "string",
+          "status_code": 0,
+          "last_keep_alive": "2023-07-30T12:00:00Z"
+        }
+      ]
+    }
+    """
+    try:
+        agent_details = await AgentController.get_agent_details(current_user)
+        return AgentDetailsAPIResponse(success=True, content=agent_details)
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("Permission denied")
+    except ElasticsearchError as e:
+        logger.error(f"Elasticsearch error: {e}")
+        raise ElasticsearchError("Database error")
+    except Exception as e:
+        logger.error(f"Error in get_agent_details endpoint: {e}")
         raise InternalServerError()

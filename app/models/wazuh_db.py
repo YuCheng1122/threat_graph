@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Tuple
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError, RequestError
 import os
+import json
 import logging
 from functools import wraps
 from dotenv import load_dotenv, find_dotenv
@@ -166,6 +167,61 @@ class AgentModel:
             logger.error(f"Unexpected error in load_agents: {str(e)}")
             raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
     
+    @staticmethod
+    def get_latest_agent_details(group_names: Optional[List[str]] = None) -> List[Dict]:
+        query = {
+            "size": 10000,
+            "_source": [
+                "agent_name",
+                "ip",
+                "os",
+                "agent_status",
+                "last_keep_alive",
+                "group_name"
+            ],
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"wazuh_data_type": "agent_info"}},
+                        {
+                            "range": {
+                                "last_keep_alive": {
+                                    "gte": "2024-09-09T00:00:00"  # 從 2024-09-09 開始
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "sort": [
+                {"last_keep_alive": {"order": "desc"}}
+            ],
+            "collapse": {
+                "field": "agent_id"
+            }
+        }
+
+        if group_names:
+            query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
+
+        logger.info(f"Elasticsearch query: {json.dumps(query, indent=2)}")
+
+        try:
+            result = es.search(index="2024_09_agents_data", body=query)
+            
+            # Log relevant parts of the Elasticsearch response
+            logger.info(f"Total hits: {result['hits']['total']['value']}")
+            logger.info(f"Max score: {result['hits']['max_score']}")
+            
+            agent_details = [hit['_source'] for hit in result['hits']['hits']]
+            logger.info(f"Number of agents retrieved: {len(agent_details)}")
+            logger.info(f"Sample agent detail: {json.dumps(agent_details[0] if agent_details else {}, indent=2)}")
+
+            return agent_details
+        except Exception as e:
+            logger.error(f"Error querying Elasticsearch: {str(e)}")
+            raise ElasticsearchError(f"Error loading agents: {str(e)}", 500)
+        
 class EventModel:
     """
     Represents an event in the Wazuh system. Handles the creation, storage, and retrieval of event data.
@@ -173,6 +229,7 @@ class EventModel:
     def __init__(self, event: WazuhEvent):
         self.timestamp = event.timestamp
         self.agent_id = event.agent_id
+        self.agent_name = event.agent_name
         self.agent_ip = event.agent_ip
         self.rule_description = event.rule_description
         self.rule_level = event.rule_level
@@ -187,6 +244,7 @@ class EventModel:
         return {
             "timestamp": self.timestamp.isoformat(),
             "agent_id": self.agent_id,
+            "agent_name": self.agent_name,
             "agent_ip": self.agent_ip,
             "rule_description": self.rule_description,
             "rule_level": self.rule_level,
@@ -353,7 +411,7 @@ class EventModel:
     @staticmethod
     async def load_messages(start_time: datetime, end_time: datetime, group_names: Optional[List[str]] = None, limit: int = 20) -> Tuple[List[Dict], int]:
         """
-        Load high-level messages (rule_level > 8) from Elasticsearch within a specified time range.
+        Load high-level messages (rule_level >=8) from Elasticsearch within a specified time range.
         """
         query = {
             "bool": {
@@ -369,7 +427,7 @@ class EventModel:
                     {
                         "range": {
                             "rule_level": {
-                                "gt": 8
+                                "gte": 8
                             }
                         }
                     }
@@ -383,13 +441,17 @@ class EventModel:
         body = {
             "query": query,
             "sort": [{"timestamp": {"order": "desc"}}],
-            "size": limit
-        }
+            "size": limit,
+            }
+        
+        logger.info(f"Loading messages with query: {body}")
         
         try:
             result = es.search(index=get_index_name(), body=body)
             messages = [hit['_source'] for hit in result['hits']['hits']]
             total_count = result['hits']['total']['value']
+            logger.info(f"Loaded {len(messages)} messages for {group_names} from {start_time} to {end_time}")
+            logger.info(f"Messages: {messages}")
             
             return messages, total_count
         except Exception as e:

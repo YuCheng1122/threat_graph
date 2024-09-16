@@ -2,13 +2,43 @@
     "agents": [
         {
             "id": 1,
-            "agent_name": "Agent 001",
-            "data": 50
+            "agent_name": "Active agents",
+            "data": 0
         },
         {
             "id": 2,
-            "agent_name": "Agent 002",
-            "data": 30
+            "agent_name": "Total agents",
+            "data": 0
+        },
+        {
+            "id": 3,
+            "agent_name": "Active Windows agents",
+            "data": 0
+        },
+        {
+            "id": 4,
+            "agent_name": "Windows agents",
+            "data": 0
+        },
+        {
+            "id": 5,
+            "agent_name": "Active Linux agents",
+            "data": 0
+        },
+        {
+            "id": 6,
+            "agent_name": "Linux agents",
+            "data": 0
+        },
+        {
+            "id": 7,
+            "agent_name": "Active MacOS agents",
+            "data": 0
+        },
+        {
+            "id": 8,
+            "agent_name": "MacOS agents",
+            "data": 0
         }
     ]
 }

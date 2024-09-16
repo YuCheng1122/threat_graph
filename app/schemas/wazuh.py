@@ -17,6 +17,7 @@ class Agent(BaseModel):
 class WazuhEvent(BaseModel):
     timestamp: datetime = Field(..., example="2023-07-30T12:05:00Z", description="Timestamp of the event")
     agent_id: str = Field(..., example="001", description="ID of the agent that generated the event")
+    agent_name: str = Field(..., example="test-agent-1", description="Name of the agent that generated the event")
     agent_ip: str = Field(..., example="192.168.1.100", description="IP of the agent that generated the event")
     rule_description: str = Field(..., example="File added to the system.", description="Description of the rule that triggered")
     rule_level: int = Field(..., example=3, description="Level of the rule that triggered")
@@ -132,11 +133,11 @@ class AgentSummaryResponse(BaseModel):
 class AgentMessage(BaseModel):
     id: int = Field(..., example=1)
     time: str = Field(..., example="Jul 30, 2024 @ 03:36:11.534")
-    agent_id: str = Field(..., example="001")
+    agent_name: str = Field(..., example="test-agent-1")
     rule_description: str = Field(..., example="VirusTotal: Alert - c:\\users\\vm_user\\downloads\\annabelle.exe - 62 engines detected this file")
     rule_mitre_tactic: str = Field(None, example="Execution")
     rule_mitre_id: str = Field(None, example="T1203")
-    rule_level: int = Field(..., ge=9, le=15, example=12, description="Rule level (9-15)")
+    rule_level: int = Field(..., ge=8, le=15, example=12, description="Rule level (9-15)")
 
 class AgentMessagesResponse(BaseModel):
     total: int = Field(..., description="Total number of high-level messages in the specified time range")
@@ -150,7 +151,7 @@ class AgentMessagesResponse(BaseModel):
                     {
                         "id": 1,
                         "time": "Jul 30, 2024 @ 03:36:11.534",
-                        "agent_id": "001",
+                        "agent_name": "test-agent-1",
                         "rule_description": "VirusTotal: Alert - c:\\users\\vm_user\\downloads\\annabelle.exe - 62 engines detected this file",
                         "rule_mitre_tactic": "Execution",
                         "rule_mitre_id": "T1203",
@@ -212,3 +213,14 @@ class PieChartRequest(BaseModel):
 class PieChartAPIResponse(BaseModel):
     success: bool = Field(..., description="Indicates if the request was successful")
     content: PieChartData = Field(..., description="Contains the pie chart data")
+
+class AgentDetailResponse(BaseModel):
+    agent_name: str
+    ip: str
+    os: str
+    agent_status: str
+    last_keep_alive: datetime
+
+class AgentDetailsAPIResponse(BaseModel):
+    success: bool
+    content: List[AgentDetailResponse]
