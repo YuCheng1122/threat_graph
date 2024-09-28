@@ -1,540 +1,47 @@
-2024-09-06 20:07:43,414 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6027, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63460, '_primary_term': 22}
-2024-09-06 20:07:43,445 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 347, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63461, '_primary_term': 22}
-2024-09-06 20:08:38,270 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6028, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63462, '_primary_term': 22}
-2024-09-06 20:08:38,303 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 348, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63463, '_primary_term': 22}
-2024-09-06 20:09:23,904 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6029, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63464, '_primary_term': 22}
-2024-09-06 20:09:23,931 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 349, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63465, '_primary_term': 22}
-2024-09-06 20:10:13,632 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6030, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63466, '_primary_term': 22}
-2024-09-06 20:10:13,713 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 350, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63467, '_primary_term': 22}
-2024-09-06 20:11:09,972 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6031, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63468, '_primary_term': 22}
-2024-09-06 20:11:10,001 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 351, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63469, '_primary_term': 22}
-2024-09-06 20:12:41,976 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6032, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63470, '_primary_term': 22}
-2024-09-06 20:12:42,287 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 352, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63471, '_primary_term': 22}
-2024-09-06 20:13:26,987 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6033, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63472, '_primary_term': 22}
-2024-09-06 20:13:27,014 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 353, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63473, '_primary_term': 22}
-2024-09-06 20:14:23,191 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6034, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63474, '_primary_term': 22}
-2024-09-06 20:14:23,292 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 354, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63475, '_primary_term': 22}
-2024-09-06 20:15:12,246 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6035, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63476, '_primary_term': 22}
-2024-09-06 20:15:12,280 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 355, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63477, '_primary_term': 22}
-2024-09-06 20:16:09,994 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6036, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63478, '_primary_term': 22}
-2024-09-06 20:16:10,018 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 356, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63479, '_primary_term': 22}
-2024-09-06 20:17:32,419 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6037, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63480, '_primary_term': 22}
-2024-09-06 20:17:32,445 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 357, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63481, '_primary_term': 22}
-2024-09-06 20:18:40,543 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6038, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63482, '_primary_term': 22}
-2024-09-06 20:18:40,567 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 358, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63483, '_primary_term': 22}
-2024-09-06 20:19:26,435 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6039, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63484, '_primary_term': 22}
-2024-09-06 20:19:26,464 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 359, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63485, '_primary_term': 22}
-2024-09-06 20:20:04,910 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6040, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63486, '_primary_term': 22}
-2024-09-06 20:20:04,952 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 360, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63487, '_primary_term': 22}
-2024-09-06 20:21:01,697 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6041, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63488, '_primary_term': 22}
-2024-09-06 20:21:01,989 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 361, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63489, '_primary_term': 22}
-2024-09-06 20:22:34,061 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6042, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63490, '_primary_term': 22}
-2024-09-06 20:22:34,119 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 362, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63491, '_primary_term': 22}
-2024-09-06 20:23:39,986 - app_logger - INFO - Agent 137 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_137', '_version': 6043, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63492, '_primary_term': 22}
-2024-09-06 20:23:40,044 - app_logger - INFO - Agent 147 saved successfully. Result: {'_index': '2024_09_agents_data', '_type': '_doc', '_id': 'agent_147', '_version': 363, 'result': 'updated', '_shards': {'total': 2, 'successful': 1, 'failed': 0}, '_seq_no': 63493, '_primary_term': 22}
-2024-09-08 11:54:26,226 - app_logger - ERROR - Invalid password: Invalid password for user arron
-2024-09-08 11:54:45,265 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 06...': '', 'rule_level': 10}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:45,265 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:45,265 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:45,265 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:45,265 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:51,920 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 06...': '', 'rule_level': 10}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:51,921 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:51,921 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:51,921 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:54:51,921 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:57:40,059 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 06...': '', 'rule_level': 10}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:57:40,059 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:57:40,060 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:57:40,060 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:57:40,060 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,159 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,159 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,159 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,160 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,160 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,160 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 6, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,160 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 7, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,161 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 8, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,161 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 9, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,161 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 10, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 11, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 12, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 13, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 14, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 15, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 16, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 17, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 18, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 19, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 20, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 21, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,162 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 22, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 23, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 24, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 25, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 26, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 27, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 28, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 29, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 30, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 31, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 32, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,163 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 33, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 34, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 35, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 36, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 37, 'time': 'Sep 0...T1489', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 38, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 39, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 40, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 41, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 42, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 43, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 44, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,164 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 45, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,165 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 46, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,165 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 47, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,165 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 48, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,165 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 49, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 11:58:45,165 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 50, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:01:51,026 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 06...': '', 'rule_level': 10}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:01:51,026 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:01:51,026 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:01:51,026 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:01:51,026 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 06...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 1, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 2, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 3, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 4, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 5, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 6, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,719 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 7, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 8, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 9, 'time': 'Sep 02...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 10, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 11, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 12, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 13, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 14, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 15, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 16, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 17, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 18, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 19, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,720 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 20, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 21, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 22, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 23, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 24, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 25, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 26, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 27, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 28, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 29, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 30, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 31, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 32, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,721 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 33, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 34, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 35, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 36, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 37, 'time': 'Sep 0...T1489', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 38, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 39, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 40, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 41, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 42, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 43, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 44, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 45, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,722 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 46, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,723 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 47, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,723 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 48, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,723 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 49, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:05:42,723 - app_logger - ERROR - Error processing message: 1 validation error for AgentMessage
-agent_id
-  Field required [type=missing, input_value={'id': 50, 'time': 'Sep 0...d': '', 'rule_level': 9}, input_type=dict]
-    For further information visit https://errors.pydantic.dev/2.8/v/missing
-2024-09-08 12:25:01,311 - app_logger - INFO - Processed 5 out of 5 messages
-2024-09-08 12:25:01,651 - app_logger - INFO - Processed 5 out of 5 messages
-2024-09-08 12:25:05,954 - app_logger - INFO - Processed 5 out of 5 messages
-2024-09-08 12:30:18,670 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:30:27,224 - app_logger - ERROR - Unexpected error in get_messages: cannot unpack non-iterable NoneType object
-2024-09-08 12:30:27,224 - app_logger - ERROR - Error in get_agent_messages endpoint: BaseCustomError.__init__() got an unexpected keyword argument 'detail'
-2024-09-08 12:32:33,676 - app_logger - INFO - Processed 0 out of 0 messages
-2024-09-08 12:37:37,958 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:37:50,607 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:37:51,361 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:39:09,097 - app_logger - INFO - Processed 0 out of 0 messages
-2024-09-08 12:39:23,533 - app_logger - INFO - Processed 5 out of 5 messages
-2024-09-08 12:39:47,803 - app_logger - INFO - Processed 5 out of 5 messages
-2024-09-08 12:48:13,838 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:48:22,177 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 12:51:22,861 - app_logger - ERROR - Elasticsearch error: Database error
-2024-09-08 13:06:10,681 - app_logger - ERROR - Error in get_agent_info endpoint: Database error
-2024-09-08 13:16:34,524 - app_logger - INFO - Processed 0 out of 0 messages
-2024-09-08 13:16:39,302 - app_logger - ERROR - Error processing message: 2 validation errors for AgentMessage
-rule_mitre_tactic
-  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+2024-09-25 11:12:52,586 - app_logger - DEBUG - This is a debug message
+2024-09-25 11:12:52,586 - app_logger - INFO - This is an info message
+2024-09-25 11:12:52,586 - app_logger - WARNING - This is a warning message
+2024-09-25 11:12:52,586 - app_logger - ERROR - This is an error message
+2024-09-25 11:23:43,347 - app_logger - INFO - Received login request for user: poc3
+2024-09-25 11:24:14,350 - app_logger - INFO - Received login request for user: poc2
+2024-09-25 11:38:53,501 - app_logger - DEBUG - Received signup request for user: testuser
+2024-09-25 11:38:53,501 - app_logger - INFO - Attempting to create user: testuser
+2024-09-25 11:38:53,794 - app_logger - ERROR - 發生錯誤: 'user_role' is an invalid keyword argument for UserSignup
+2024-09-25 11:38:53,794 - app_logger - ERROR - AuthController error for user testuser: 發生錯誤: 'user_role' is an invalid keyword argument for UserSignup
+2024-09-25 11:41:56,299 - app_logger - DEBUG - Received signup request for user: testuser
+2024-09-25 11:41:56,300 - app_logger - INFO - Attempting to create user: testuser
+2024-09-25 11:41:56,998 - app_logger - INFO - User testuser created successfully
+2024-09-25 11:50:13,022 - app_logger - DEBUG - Received signup request for user: testuser
+2024-09-25 11:50:13,023 - app_logger - INFO - Attempting to create user: testuser
+2024-09-25 11:50:13,588 - app_logger - ERROR - 發生錯誤: (pymysql.err.IntegrityError) (1062, "Duplicate entry 'testuser' for key 'user_signup.username'")
+[SQL: INSERT INTO user_signup (username, password, email, company_name, license_amount, disabled, create_date, update_date) VALUES (%(username)s, %(password)s, %(email)s, %(company_name)s, %(license_amount)s, %(disabled)s, %(create_date)s, %(update_date)s)]
+[parameters: {'username': 'testuser', 'password': '$2b$12$My1oauSzIkPxBL5r/r/cse932OrUQFTAw8Zmib24KTZ8pnx3pC/v2', 'email': 'testuser@example.com', 'company_name': 'Test Company', 'license_amount': None, 'disabled': 0, 'create_date': datetime.datetime(2024, 9, 25, 11, 50, 13, 294671), 'update_date': datetime.datetime(2024, 9, 25, 11, 50, 13, 294698)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2024-09-25 11:50:13,589 - app_logger - ERROR - AuthController error for user testuser: 發生錯誤: (pymysql.err.IntegrityError) (1062, "Duplicate entry 'testuser' for key 'user_signup.username'")
+[SQL: INSERT INTO user_signup (username, password, email, company_name, license_amount, disabled, create_date, update_date) VALUES (%(username)s, %(password)s, %(email)s, %(company_name)s, %(license_amount)s, %(disabled)s, %(create_date)s, %(update_date)s)]
+[parameters: {'username': 'testuser', 'password': '$2b$12$My1oauSzIkPxBL5r/r/cse932OrUQFTAw8Zmib24KTZ8pnx3pC/v2', 'email': 'testuser@example.com', 'company_name': 'Test Company', 'license_amount': None, 'disabled': 0, 'create_date': datetime.datetime(2024, 9, 25, 11, 50, 13, 294671), 'update_date': datetime.datetime(2024, 9, 25, 11, 50, 13, 294698)}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2024-09-25 11:54:12,941 - app_logger - DEBUG - Received signup request for user: testuser
+2024-09-25 11:54:12,941 - app_logger - INFO - Attempting to create user: testuser
+2024-09-25 11:55:06,830 - app_logger - DEBUG - Received signup request for user: testuser2
+2024-09-25 11:55:06,831 - app_logger - INFO - Attempting to create user: testuser2
+2024-09-25 11:55:07,130 - app_logger - INFO - User testuser2 created successfully
+2024-09-25 11:58:44,578 - app_logger - DEBUG - Received signup request for user: testuser2
+2024-09-25 11:58:44,578 - app_logger - INFO - Attempting to create user: testuser2
+2024-09-25 11:58:48,702 - app_logger - DEBUG - Received signup request for user: testuser3
+2024-09-25 11:58:48,702 - app_logger - INFO - Attempting to create user: testuser3
+2024-09-25 11:58:49,405 - app_logger - INFO - User testuser3 created successfully
+2024-09-25 12:26:00,628 - app_logger - DEBUG - Received signup request for user: testuser4
+2024-09-25 12:26:00,629 - app_logger - INFO - Attempting to create user: testuser4
+2024-09-25 12:26:01,148 - app_logger - INFO - User testuser4 created successfully
+2024-09-25 18:44:20,499 - app_logger - ERROR - type object 'AuthController' has no attribute 'get_group_email_map'
+2024-09-25 18:45:28,052 - app_logger - ERROR - Unexpected error in get_group: type object 'AuthController' has no attribute 'get_group_email_map'
+2024-09-25 19:03:13,813 - app_logger - ERROR - Unexpected error in get_group: type object 'AuthController' has no attribute 'get_group_email_map'
+2024-09-25 19:04:30,869 - app_logger - ERROR - Unexpected error in get_group: 1 validation error for GroupEmailMap
+__root__
+  Input should be a valid string [type=string_type, input_value={}, input_type=dict]
     For further information visit https://errors.pydantic.dev/2.8/v/string_type
+<<<<<<< HEAD
 rule_mitre_id
   Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
     For further information visit https://errors.pydantic.dev/2.8/v/string_type
@@ -12127,3 +11634,16 @@ WHERE users.username = %(username_1)s
 2024-09-28 03:04:25,837 - app_logger - ERROR - Error saving agent 137 to Elasticsearch: Connection timed out
 2024-09-28 03:04:25,838 - app_logger - ERROR - Unexpected error in save_agent_info: Connection timed out
 2024-09-28 03:04:25,838 - app_logger - ERROR - Error in get_agent_info endpoint: BaseCustomError.__init__() got an unexpected keyword argument 'detail'
+=======
+2024-09-25 19:27:03,740 - app_logger - INFO - User 11 permission check for group admin: False
+2024-09-25 19:29:18,731 - app_logger - INFO - User 11 permission check for group admin: False
+2024-09-25 19:32:18,724 - app_logger - ERROR - Unexpected error in approve_email: type object 'UserSignup' has no attribute 'update_disabled_status'
+2024-09-25 19:33:07,935 - app_logger - ERROR - Unexpected error in approve_email: type object 'UserSignup' has no attribute 'update_disabled_status'
+2024-09-25 19:34:06,716 - app_logger - ERROR - Unexpected error in approve_email: type object 'UserSignup' has no attribute 'update_disabled_status'
+2024-09-25 23:00:11,845 - app_logger - INFO - User 11 permission check for group admin: False
+2024-09-27 16:07:52,015 - app_logger - ERROR - Unexpected error in get_group: (pymysql.err.OperationalError) (1054, "Unknown column 'group_signup.user_id' in 'on clause'")
+[SQL: SELECT group_signup.group_name AS group_signup_group_name, user_signup.email AS user_signup_email 
+FROM group_signup INNER JOIN user_signup ON group_signup.user_id = user_signup.id]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2024-09-28 10:01:58,345 - app_logger - INFO - User 11 permission check for group admin: False
+>>>>>>> a662aa9df09eaa64bdc845ed71e5ab320dae426a

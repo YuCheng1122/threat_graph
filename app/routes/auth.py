@@ -1,8 +1,13 @@
 from fastapi import Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from app.controllers.auth import AuthController
-from app.schemas.user import UserRegister
+from app.schemas.user import UserRegister, UserSignup
 from app.ext.error import UserExistedError, UserNotFoundError, InvalidPasswordError, UserDisabledError, AuthControllerError
+from logging import getLogger
+
+# Get the centralized logger
+logger = getLogger('app_logger')
+
 
 router = APIRouter()
 
@@ -32,4 +37,37 @@ async def register_user(user: UserRegister):
     except UserExistedError:
         raise
     except AuthControllerError as e:
+        raise
+    
+@router.post("/signup")
+async def signup_user(user: UserSignup):
+    """
+    Register a new user
+    Request body:
+    - username: str
+    - password: str
+    - email: str
+    - company_name: str 
+    Response body:
+    - success: bool
+    - content: None
+    - message: str
+    """
+    try:
+        AuthController.create_user_signup(
+            user.username,
+            user.password,
+            user.email,
+            user.company_name
+        )
+        return {
+            "success": True,
+            "content": None,
+            "message": "User signup successfully"
+        }
+    except UserExistedError as e:
+        raise
+    except AuthControllerError as e:
+        raise
+    except Exception as e:
         raise

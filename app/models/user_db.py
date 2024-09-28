@@ -1,15 +1,18 @@
 import json
 import os
-from sqlalchemy import create_engine, Column, String, Boolean, Integer, Enum, ForeignKey
+from sqlalchemy import create_engine, Column, String, Boolean, Integer, Enum, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, relationship
-from app.ext.error import ElasticsearchError
+from sqlalchemy.sql import func
+from app.ext.error import ElasticsearchError, UserExistedError, AuthControllerError
 from dotenv import load_dotenv
 import logging
 from typing import List
 from logging import getLogger
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
+from datetime import datetime, date
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -38,9 +41,23 @@ class Group(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     user = relationship("User", back_populates="groups")
 
+class UserSignup(Base):
+    __tablename__ = "user_signup"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, index=True, nullable=False)
+    password = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    company_name = Column(String(255), nullable=False)
+    user_role = Column(String(255),nullable=False, default='user')
+    license_amount = Column(Integer, nullable=0)
+    disabled = Column(Boolean, default=True)
+    create_date = Column(DateTime, server_default=func.now())
+    update_date = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
 Base.metadata.create_all(bind=engine)
 
 class UserModel:
+    
     def __init__(self,id: int, username: str, password: str, disabled: bool, user_role: str = 'user'):
         self.id = id
         self.username = username
@@ -101,3 +118,26 @@ class UserModel:
         except Exception as e:
             logger.error(f"Database error in check_user_group: {e}")
             raise ElasticsearchError(f'Database error: {e}', 500)
+        
+    @staticmethod
+    def create_user_signup(username: str, password: str, email: str, company_name: str):
+        session = SessionLocal()
+        try:
+            new_user = UserSignup(
+                username=username, 
+                password=password, 
+                email=email, 
+                company_name=company_name,
+                license_amount=0,
+                disabled=True,
+                create_date=func.now(),
+                update_date=func.now()
+            )
+            session.add(new_user)
+            session.commit()
+            session.refresh(new_user)
+        except SQLAlchemyError:
+            session.rollback()
+            raise
+        finally:
+            session.close()

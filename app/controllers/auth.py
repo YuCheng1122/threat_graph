@@ -7,8 +7,9 @@ from passlib.context import CryptContext
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from app.models.user_db import UserModel
-from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError
+from app.ext.error import UserNotFoundError, AuthControllerError, InvalidPasswordError, UserExistedError, UserDisabledError, InvalidTokenError, PermissionError
 from logging import getLogger
+
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -109,3 +110,38 @@ class AuthController:
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             raise AuthControllerError(f"An error occurred: {e}")
+
+    @classmethod
+    def create_user_signup(cls, username: str, password: str, email: str, company_name: str):
+        try:
+            existing_user = UserModel.get_user(username)
+            if existing_user:
+                raise UserExistedError(f"User {username} already exists")
+
+            hashed_password = cls.get_password_hash(password)
+            
+            new_user = {
+                'username': username,
+                'password': hashed_password,
+                'email': email,
+                'company_name': company_name,
+            }
+            
+            UserModel.create_user_signup(**new_user)
+        except UserExistedError:
+            raise
+        except Exception as e:
+            raise
+        
+    @staticmethod
+    async def check_user_permission(user: UserModel, group_name: str) -> None:
+        """
+        Check if a user has permission to access a specific group, we will check db table to verify user's permission.
+        """
+        if user.disabled:
+            raise PermissionError("User account is disabled")
+        if user.user_role == 'admin':
+            return
+        has_permission = UserModel.check_user_group(user.id, group_name)
+        if not has_permission:
+            raise PermissionError("Permission denied")

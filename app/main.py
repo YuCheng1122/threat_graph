@@ -10,6 +10,7 @@ import uvicorn
 from app.routes.view import router as view_router
 from app.routes.auth import router as auth_router
 from app.routes.wazuh import router as wazuh_router
+from app.routes.manage import router as manage_router
 from app.ext.error_handler import add_error_handlers
 from fastapi.middleware.cors import CORSMiddleware  
 
@@ -33,6 +34,7 @@ def setup_logger(name, log_file, level=logging.INFO):
 
 # Create centralized logger
 app_logger = setup_logger('app_logger', './logs/app.log', level=logging.DEBUG)
+logging.getLogger('app_logger').addHandler(logging.StreamHandler())
 
 app = FastAPI(
     title="AIXSOAR ATH API",
@@ -60,6 +62,7 @@ app.add_middleware(
 app.include_router(view_router, prefix="/api/view")
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(wazuh_router, prefix="/api/wazuh") 
+app.include_router(manage_router, prefix="/api/manage")
 
 # Include error handlers
 add_error_handlers(app)

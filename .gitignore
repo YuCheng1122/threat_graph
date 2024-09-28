@@ -115,3 +115,5 @@ cython_debug/
 # Windows
 Thumbs.db
 *.lnk
+
+/logs/
