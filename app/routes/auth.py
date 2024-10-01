@@ -24,21 +24,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         raise UserNotFoundError("Incorrect username or password")
     except AuthControllerError as e:
         raise 
-
-@router.post("/register")
-async def register_user(user: UserRegister):
-    try:
-        AuthController.create_user(user.username, user.password)
-        return {
-            "success": True,
-            "content": None,
-            "message": "User registered successfully"
-        }
-    except UserExistedError:
-        raise
-    except AuthControllerError as e:
-        raise
-    
+  
 @router.post("/signup")
 async def signup_user(user: UserSignup):
     """

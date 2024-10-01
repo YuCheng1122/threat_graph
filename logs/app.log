@@ -52,3 +52,14 @@ __root__
 FROM group_signup INNER JOIN user_signup ON group_signup.user_id = user_signup.id]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 2024-09-28 10:01:58,345 - app_logger - INFO - User 11 permission check for group admin: False
+2024-10-01 13:58:40,725 - app_logger - INFO - Verifying password: 3cop $2b$12$rSE0IbSVlx2Bo2V/ytBQne.UaIbLVG5NlYXA1SXiWQ6uPpWagxno2
+2024-10-01 14:00:41,859 - app_logger - INFO - Verifying password: 3cop $2b$12$rSE0IbSVlx2Bo2V/ytBQne.UaIbLVG5NlYXA1SXiWQ6uPpWagxno2
+2024-10-01 14:08:28,807 - app_logger - ERROR - User is disabled: poc2
+2024-10-01 14:08:30,820 - app_logger - ERROR - User is disabled: poc2
+2024-10-01 14:09:56,804 - app_logger - ERROR - Token validation error: Invalid token
+2024-10-01 14:10:01,885 - app_logger - ERROR - Token validation error: Invalid token
+2024-10-01 14:12:35,780 - app_logger - DEBUG - Password verification result: False
+2024-10-01 14:12:36,036 - app_logger - ERROR - Incorrect password for user: poc2
+2024-10-01 14:12:54,743 - app_logger - DEBUG - Password verification result: True
+2024-10-01 14:24:38,583 - app_logger - INFO - User 66 permission check for group admin: False
+2024-10-01 14:24:48,098 - app_logger - INFO - User 66 permission check for group admin: False
