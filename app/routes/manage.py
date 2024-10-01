@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from app.models.user_db import UserModel
 from app.controllers.manage import ManageController
 from api_web_dev.app.schemas.manage import GroupListResponse, GroupEmailMap, ApproveUserRequest, UpdateLicenseRequest
 from api_web_dev.app.ext.error import UnauthorizedError, InternalServerError
 from app.controllers.auth import AuthController
 from logging import getLogger
+from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, UserInfo
+from app.schemas.user import UserSignup
+from app.models.manage_db import SessionLocal
 
 logger = getLogger('app_logger')
 
@@ -13,6 +17,13 @@ router = APIRouter()
 async def admin_required(user: UserModel = Depends(AuthController.get_current_user)):
     await AuthController.check_user_permission(user, "admin")
     return user
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.get("/group")
 async def get_group(user: UserModel = Depends(admin_required)):
@@ -51,3 +62,13 @@ async def update_license(request: UpdateLicenseRequest, user: UserModel = Depend
     except Exception as e:
         logger.error(f"Unexpected error in {update_license.__name__}: {e}")
         raise InternalServerError()
+
+@router.get("/users", response_model=UserListResponse)
+async def read_users(
+    _: UserSignup = Depends(admin_required),
+    db: Session = Depends(get_db)
+):
+    users = ManageController.get_users(db)
+    return UserListResponse(users=users)
+
+

@@ -1,11 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, select
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from logging import getLogger
 from dotenv import load_dotenv
+from sqlalchemy.orm import Session
+from app.schemas.manage import UserInfo
 import os
+from typing import List
 
 
 logger = getLogger('app_logger')
@@ -55,6 +58,40 @@ class UserSignup(Base):
                 session.commit()
                 return True
             return False
+
+    @classmethod
+    def get_user_groups(cls, user_id: int) -> List[str]:
+        with SessionLocal() as session:
+            user = session.query(cls).filter(cls.id == user_id).first()
+            if user:
+                return [group.group_name for group in user.groups]
+            return []
+
+    @classmethod
+    def get_user_license(cls, user_id: int) -> int:
+        with SessionLocal() as session:
+            user = session.query(cls).filter(cls.id == user_id).first()
+            return user.license_amount if user else 0
+
+    @classmethod
+    def get_total_license(cls) -> int:
+        with SessionLocal() as session:
+            result = session.execute(select(func.sum(cls.license_amount))).scalar()
+            return result or 0
+    
+    @classmethod
+    def get_all_users(cls, db: Session):
+        users = db.query(cls).filter(cls.user_role != 'admin').all()
+        return [
+            UserInfo(
+                username=user.username,
+                email=user.email,
+                company_name=user.company_name,
+                license_amount=user.license_amount,
+                disabled=bool(user.disabled)
+            )
+            for user in users
+        ]
 
 class Group(Base):
     __tablename__ = 'group_signup'

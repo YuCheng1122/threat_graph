@@ -110,7 +110,7 @@ class AgentController:
     async def get_agent_summary(user: UserModel, start_time: datetime, end_time: datetime) -> List[AgentSummary]:
         
         if user.user_role == 'admin':
-            group_names = None  # Admin can see all groups
+            group_names = None  
         else:
             group_names = UserModel.get_user_groups(user.id)  # Remove await here
             if not group_names:
