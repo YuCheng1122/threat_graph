@@ -1,0 +1,16 @@
+2024-10-01 15:57:03,188 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: 1 validation error for TotalAgentsAndLicenseResponse
+total_license
+  Input should be a valid integer [type=int_type, input_value=<coroutine object ManageC...cense at 0x7ffbb553eff0>, input_type=coroutine]
+    For further information visit https://errors.pydantic.dev/2.8/v/int_type
+2024-10-01 17:12:31,423 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: get_user_groups
+2024-10-01 17:13:02,256 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: get_user_groups
+2024-10-01 17:16:16,231 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: type object 'AuthController' has no attribute 'get_user_groups'
+2024-10-01 17:21:00,404 - app_logger - INFO - User: <app.models.user_db.UserSignup object at 0x7f74662d5ea0>
+2024-10-01 17:21:00,404 - app_logger - INFO - User ID: 68
+2024-10-01 17:21:00,404 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: type object 'AuthController' has no attribute 'get_user_groups'
+2024-10-01 17:27:45,500 - app_logger - INFO - User: <app.models.user_db.UserSignup object at 0x7fb79f885090>
+2024-10-01 17:27:45,501 - app_logger - INFO - User ID: 68
+2024-10-01 17:27:45,502 - app_logger - ERROR - Unexpected error in get_total_agents_and_license: type object 'AuthController' has no attribute 'get_user_groups'
+2024-10-01 17:29:31,581 - app_logger - INFO - User: <app.models.user_db.UserSignup object at 0x7ff40bfed090>
+2024-10-01 17:29:31,582 - app_logger - INFO - User ID: 68
+2024-10-01 18:00:45,651 - app_logger - INFO - User 68 permission check for group admin: False
