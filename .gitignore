@@ -117,4 +117,4 @@ Thumbs.db
 *.lnk
 
 
-logs/
+logs/logs/app.log
