@@ -1,3 +1,0 @@
-2024-10-01 19:32:41,373 - app_logger - ERROR - Unexpected error in get_total_agents_and_license for user 68: type object 'AuthController' has no attribute 'get_user_groups'
-2024-10-01 19:37:00,865 - app_logger - INFO - User groups: ['poc3']
-2024-10-01 19:37:00,961 - app_logger - INFO - Total agents: 3, Total license: 0
