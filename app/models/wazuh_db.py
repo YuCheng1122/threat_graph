@@ -186,7 +186,7 @@ class AgentModel:
                         {
                             "range": {
                                 "last_keep_alive": {
-                                    "gte": "2024-09-09T00:00:00"  # 從 2024-09-09 開始
+                                    "gte": "2024-09-09T00:00:00" 
                                 }
                             }
                         }
