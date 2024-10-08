@@ -74,7 +74,7 @@ class AuthController:
             raise AuthControllerError(f"Token validation error: {str(e)}")
 
     @classmethod
-    def create_user_signup(cls, username: str, password: str, email: str, company_name: str) -> None:
+    def create_user_signup(cls, username: str, password: str, email: str, company_name: str, license_amount: int) -> None:
         try:
             existing_active_user = DBUserModel.get_active_user(username, email)
             if existing_active_user:
@@ -90,6 +90,7 @@ class AuthController:
                 'password': hashed_password,
                 'email': email,
                 'company_name': company_name,
+                'license_amount': license_amount,
                 'disabled': 1  
             }
             DBUserModel.create_user_signup(**new_user)

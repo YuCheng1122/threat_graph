@@ -24,7 +24,7 @@ Base = declarative_base()
 class UserSignup(Base):
     __tablename__ = 'user_signup'
 
-    id = Column(Integer, primary_key=True)
+    id= Column(Integer, primary_key=True)
     email = Column(String(255), nullable=False)
     username = Column(String(255), nullable=False)
     password = Column(String(255), nullable=False)
@@ -38,15 +38,19 @@ class UserSignup(Base):
     groups = relationship("Group", back_populates="user")
 
     @classmethod
-    def update_disabled_status(cls, user_id: int, disabled: bool):
+    def toggle_disabled_status(cls, user_id: int) -> bool:
+        """
+        Toggle the disabled status of a user.
+        Returns the new disabled status.
+        """
         with SessionLocal() as session:
             user = session.query(cls).filter(cls.id == user_id).first()
             if user:
-                user.disabled = disabled
+                user.disabled = not user.disabled
                 user.update_date = func.now()
                 session.commit()
-                return True
-            return False
+                return user.disabled
+            return None
 
     @classmethod
     def update_license_amount(cls, user_id: int, license_amount: int):
@@ -84,6 +88,7 @@ class UserSignup(Base):
         users = db.query(cls).filter(cls.user_role != 'admin').all()
         return [
             UserInfo(
+                user_id=user.id,
                 username=user.username,
                 email=user.email,
                 company_name=user.company_name,

@@ -1,4 +1,3 @@
-import json
 import os
 from sqlalchemy import create_engine, Column, String, Boolean, Integer, Enum, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -88,7 +87,7 @@ class UserModel:
             raise 
         
     @staticmethod
-    def create_user_signup(username: str, password: str, email: str, company_name: str, disabled: bool = True):
+    def create_user_signup(username: str, password: str, email: str, company_name: str, license_amount: int, disabled: bool = True):
         session = SessionLocal()
         try:
             new_user = UserSignup(
@@ -97,7 +96,7 @@ class UserModel:
                 email=email, 
                 company_name=company_name,
                 user_role='user',
-                license_amount=0,
+                license_amount=license_amount,
                 disabled=disabled,
                 create_date=func.now(),
                 update_date=func.now()

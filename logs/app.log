@@ -1,0 +1,4 @@
+2024-10-05 13:38:35,406 - app_logger - ERROR - Login failed: User is disabled
+2024-10-08 07:40:48,747 - app_logger - INFO - User 4 permission check for group admin: False
+2024-10-08 07:41:25,516 - app_logger - ERROR - Unexpected error in toggle_user_status: type object 'UserSignup' has no attribute 'update_disabled_status'
+2024-10-08 07:43:17,470 - app_logger - ERROR - Unexpected error in toggle_user_status: UserSignup.toggle_disabled_status() takes 2 positional arguments but 3 were given

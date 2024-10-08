@@ -34,6 +34,7 @@ async def signup_user(user: UserSignup):
     - password: str
     - email: str
     - company_name: str 
+    - license_amount: int
     Response body:
     - success: bool
     - content: None
@@ -44,7 +45,8 @@ async def signup_user(user: UserSignup):
             user.username,
             user.password,
             user.email,
-            user.company_name
+            user.company_name,
+            user.license_amount
         )
         return {
             "success": True,
