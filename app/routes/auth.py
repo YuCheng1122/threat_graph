@@ -1,7 +1,7 @@
 from fastapi import Depends, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from app.controllers.auth import AuthController
-from app.schemas.user import UserRegister, UserSignup
+from app.schemas.user import UserSignup
 from app.ext.error import UserExistedError, UserNotFoundError, InvalidPasswordError, UserDisabledError, AuthControllerError
 from logging import getLogger
 
