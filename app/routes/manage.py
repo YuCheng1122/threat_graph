@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.models.user_db import UserModel
 from app.controllers.manage import ManageController
-from api_web_dev.app.schemas.manage import GroupListResponse, GroupEmailMap, ApproveUserRequest, UpdateLicenseRequest
-from api_web_dev.app.ext.error import UnauthorizedError, InternalServerError
+from app.schemas.manage import GroupListResponse, GroupEmailMap, ApproveUserRequest, UpdateLicenseRequest
+from app.ext.error import UnauthorizedError, InternalServerError
 from app.controllers.auth import AuthController
 from logging import getLogger
 from app.models.user_db import UserModel

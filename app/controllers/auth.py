@@ -25,12 +25,7 @@ class AuthController:
 
     @classmethod    
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
-        result = cls.pwd_context.verify(plain_password, hashed_password)
         return cls.pwd_context.verify(plain_password, hashed_password)
-
-    @classmethod
-    def get_password_hash(cls, password: str) -> str:
-        return cls.pwd_context.hash(password)
 
     @classmethod
     def create_access_token(cls, data: Dict, expires_delta: Optional[timedelta] = None) -> str:

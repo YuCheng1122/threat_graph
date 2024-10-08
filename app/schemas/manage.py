@@ -21,6 +21,7 @@ class TotalAgentsAndLicenseResponse(BaseModel):
     total_license: int
 
 class UserInfo(BaseModel):
+    id: int
     username: str
     email: EmailStr
     license_amount: int

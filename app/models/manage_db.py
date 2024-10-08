@@ -84,6 +84,7 @@ class UserSignup(Base):
         users = db.query(cls).filter(cls.user_role != 'admin').all()
         return [
             UserInfo(
+                id=user.id,
                 username=user.username,
                 email=user.email,
                 company_name=user.company_name,
