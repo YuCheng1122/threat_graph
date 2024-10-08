@@ -9,6 +9,7 @@ from typing import Optional, List
 logger = getLogger('app_logger')
 
 class ManageController:
+
     @staticmethod
     def get_group_email_map(current_user: UserModel) -> Dict[str, str]:
         db: Session = SessionLocal()
@@ -28,8 +29,8 @@ class ManageController:
         pass
     
     @staticmethod
-    def approve_user(user_id: int) -> bool:
-        return UserSignup.update_disabled_status(user_id, False)
+    def toggle_user_status(user_id: int) -> bool:
+        return UserSignup.toggle_disabled_status(user_id)
 
     @staticmethod
     def update_user_license(user_id: int, license_amount: int) -> bool:

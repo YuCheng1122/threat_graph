@@ -1,13 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.models.user_db import UserModel
 from app.controllers.manage import ManageController
-from app.schemas.manage import GroupListResponse, GroupEmailMap, ApproveUserRequest, UpdateLicenseRequest
 from app.ext.error import UnauthorizedError, InternalServerError
 from app.controllers.auth import AuthController
 from logging import getLogger
 from app.models.user_db import UserModel
-from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, UserInfo
+from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, ToggleUserStatusRequest, UpdateLicenseRequest
 from app.schemas.user import UserSignup
 from app.models.manage_db import SessionLocal
 
@@ -38,17 +36,16 @@ async def get_group(user: UserModel = Depends(admin_required)):
         logger.error(f"Unexpected error in {get_group.__name__}: {e}")
         raise InternalServerError()
     
-@router.put("/approve")
-async def approve_email(request: ApproveUserRequest, user: UserModel = Depends(admin_required)):
-    """Approve a user by changing their disabled status to False"""
+@router.put("/toggle-user-status")
+async def toggle_user_status(request: ToggleUserStatusRequest, user: UserModel = Depends(admin_required)):
+    """Toggle a user's disabled status between True and False"""
     try:
-        success = ManageController.approve_user(request.user_id)
-        if success:
-            return {"message": "User approved successfully"}
+        new_status = ManageController.toggle_user_status(request.user_id)
+        return {"message": f"User status updated successfully. New status: {'disabled' if new_status else 'enabled'}"}
     except UnauthorizedError:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in {approve_email.__name__}: {e}")
+        logger.error(f"Unexpected error in {toggle_user_status.__name__}: {e}")
         raise InternalServerError()
 
 @router.put("/license")
@@ -95,6 +92,13 @@ async def read_users(
     _: UserSignup = Depends(admin_required),
     db: Session = Depends(get_db)
 ):
+    """Get all users
+    Request:
+        - user: UserSignup: The current user
+        - db: Session: The database session
+    Returns:
+        - UserListResponse: A list of all users
+    """
     users = ManageController.get_users(db)
     return UserListResponse(users=users)
 
