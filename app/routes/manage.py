@@ -5,7 +5,7 @@ from app.ext.error import UnauthorizedError, InternalServerError
 from app.controllers.auth import AuthController
 from logging import getLogger
 from app.models.user_db import UserModel
-from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, ToggleUserStatusRequest, UpdateLicenseRequest
+from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, ToggleUserStatusRequest, UpdateLicenseRequest, GroupListResponse, GroupEmailMap
 from app.schemas.user import UserSignup
 from app.models.manage_db import SessionLocal
 
