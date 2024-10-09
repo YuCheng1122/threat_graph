@@ -1,27 +1,28 @@
 from pydantic import BaseModel
-from typing import Dict, List, Optional, Literal
-from datetime import datetime
+from typing import List, Dict
 
-class Tags(BaseModel):
-    src_ip: Optional[List[str]] = None
-    dest_ip: Optional[List[str]] = None
+class NodeAttributes(BaseModel):
+    tags: List[str]
 
-class Event(BaseModel):
-    timestamp: datetime
-    event_type: Literal['alert', 'flow']
-    src_ip: str
+class Node(BaseModel):
+    id: str
+    attributes: NodeAttributes
+
+class EdgeAttributes(BaseModel):
+    timestamp: str
+    source_ip: str
     dest_ip: str
-    src_port: int
-    dest_port: int
-    proto: str
-    app_proto: str
-    tags: Tags
+    source_port: float
+    dest_port: float
+    count: int
+    flow: Dict[str, int]
+    event_type: str
 
-    # Fields specific to alert event
-    signature: Optional[str] = None
-    severity: Optional[int] = None
+class Edge(BaseModel):
+    source: str
+    target: str
+    attributes: EdgeAttributes
 
-    # Fields specific to flow events
-    bytes_toclient: Optional[int] = None
-    bytes_toserver: Optional[int] = None
-
+class GraphData(BaseModel):
+    nodes: List[Node]
+    edges: List[Edge]

@@ -1,95 +1,47 @@
-from app.models.event_db import EventModel
 from datetime import datetime
-from app.ext.error import GraphControllerError, ElasticsearchError, UserNotFoundError
+# from app.schemas.graph_data import GraphData, Node, Edge, NodeAttributes, EdgeAttributes
+# from app.models.elasticsearch import ElasticsearchModel
+
 
 class GraphController:
-
     @staticmethod
-    async def get_graph_data(start_time: datetime, end_time: datetime, username: str):
-        try:
-            datas = await EventModel.load_group_events_from_elasticsearch(group=username, start_time=start_time, end_time=end_time)
+    async def get_graph_data(start_time: datetime, end_time: datetime, device_id: str):
+        
+        pass
+        # es_data = await ElasticsearchModel.get_graph_data(start_time, end_time, device_id)
+        
+        # nodes = {}
+        # edges = []
 
-            stage_ip = {}
-            nodes = []
-            edges = []
+        # for item in es_data:
+        #     source_ip = item['source_ip']
+        #     dest_ip = item['dest_ip']
 
-            for data in datas:
-                source = data['src_ip']
-                target = data['dest_ip']
-                
-                if stage_ip.get(source) is None:
-                    stage_ip[source] = True
-                    nodes.append({
-                        'id': source,
-                        'attributes': data['tags']['src_ip']
-                    })
+        #     if source_ip not in nodes:
+        #         nodes[source_ip] = Node(
+        #             id=source_ip,
+        #             attributes=NodeAttributes(tags=item.get('source_tags', []))
+        #         )
 
-                if stage_ip.get(target) is None:
-                    stage_ip[target] = True
-                    nodes.append({
-                        'id': target,
-                        'attributes': data['tags']['dest_ip']
-                    })
-                
-                data.pop('tags', None)
-                edges.append({
-                    'source': source,
-                    'target': target,
-                    'attributes': data
-                })
+        #     if dest_ip not in nodes:
+        #         nodes[dest_ip] = Node(
+        #             id=dest_ip,
+        #             attributes=NodeAttributes(tags=item.get('dest_tags', []))
+        #         )
 
-            result = {
-                'start_time': start_time.isoformat(),
-                'end_time': end_time.isoformat(),
-                'nodes': nodes,
-                'edges': edges
-            }
+        #     edges.append(Edge(
+        #         source=source_ip,
+        #         target=dest_ip,
+        #         attributes=EdgeAttributes(
+        #             timestamp=item['timestamp'],
+        #             source_ip=source_ip,
+        #             dest_ip=dest_ip,
+        #             source_port=item['source_port'],
+        #             dest_port=item['dest_port'],
+        #             count=item['count'],
+        #             flow=item['flow'],
+        #             event_type=item['event_type']
+        #         )
+        #     ))
 
-            return result
-        
-        except NotFoundUserError as e:
-            raise e
-        
-        except ElasticsearchError as e:
-            raise e
-        
-        except Exception as e:
-            raise GraphControllerError(f"GraphController error: {str(e)}", 500)
-
-    @staticmethod
-    async def save_flow_data(event, device_id: str):
-        # Validate event data
-        if not event or not device_id:
-            raise GraphControllerError("Missing event data or device ID", 400)
-
-        try:
-            event_model = EventModel(event)
-            await EventModel.save_to_elasticsearch(event=event_model, username=device_id)
-        
-        except UserNotFoundError as e:
-            raise e
-        
-        except ElasticsearchError as e:
-            raise e
-        
-        except Exception as e:
-            raise GraphControllerError(f"GraphController error: {str(e)}", 500)
-
-    @staticmethod
-    async def save_alert_data(event, device_id: str):
-        # Validate event data
-        if not event or not device_id:
-            raise GraphControllerError("Missing event data or device ID", 400)
-        
-        try:
-            event_model = EventModel(event)
-            await EventModel.save_to_elasticsearch(event=event_model, username=device_id)
-        
-        except UserNotFoundError as e:
-            raise e
-        
-        except ElasticsearchError as e:
-            raise e
-        
-        except Exception as e:
-            raise GraphControllerError(f"GraphController error: {str(e)}", 500)
+        # return GraphData(nodes=list(nodes.values()), edges=edges)
