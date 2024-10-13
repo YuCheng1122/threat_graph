@@ -26,3 +26,4 @@ class Edge(BaseModel):
 class GraphData(BaseModel):
     nodes: List[Node]
     edges: List[Edge]
+

@@ -207,7 +207,8 @@ class AgentModel:
         logger.info(f"Elasticsearch query: {json.dumps(query, indent=2)}")
 
         try:
-            result = es.search(index="2024_09_agents_data", body=query)
+            index_name = f"{datetime.now().strftime('%Y_%m')}_agents_data"
+            result = es.search(index=index_name, body=query)
             
             # Log relevant parts of the Elasticsearch response
             logger.info(f"Total hits: {result['hits']['total']['value']}")
