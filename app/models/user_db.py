@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, String, Boolean, Integer, Enum, ForeignKey, DateTime
+from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, relationship
@@ -7,12 +7,9 @@ from sqlalchemy.sql import func
 from app.ext.error import ElasticsearchError, UserExistedError, AuthControllerError
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
-import logging
 from typing import List
 from logging import getLogger
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
-from datetime import datetime, date
 
 # Get the centralized logger
 logger = getLogger('app_logger')

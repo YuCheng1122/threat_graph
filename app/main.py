@@ -11,6 +11,8 @@ from app.routes.view import router as view_router
 from app.routes.auth import router as auth_router
 from app.routes.wazuh import router as wazuh_router
 from app.routes.manage import router as manage_router
+from app.routes.agent_detail import router as agent_detail_router
+from app.routes.modbus_events import router as modbus_events_router
 from app.ext.error_handler import add_error_handlers
 from fastapi.middleware.cors import CORSMiddleware  
 
@@ -63,6 +65,8 @@ app.include_router(view_router, prefix="/api/view")
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(wazuh_router, prefix="/api/wazuh") 
 app.include_router(manage_router, prefix="/api/manage")
+app.include_router(agent_detail_router, prefix="/api/agent_detail")
+app.include_router(modbus_events_router, prefix="/api/modbus_events")
 
 # Include error handlers
 add_error_handlers(app)
