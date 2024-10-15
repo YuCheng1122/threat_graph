@@ -1,15 +1,68 @@
 from fastapi import APIRouter, Depends
-from app.schemas.agent_schema import AgentMitre, AgentMitreRequest, AgentRansomware, AgentRansomwareRequest, AgentCVE, AgentCVERequest, AgentIoC, AgentIoCRequest, AgentCompliance, AgentComplianceRequest
+from app.schemas.agent_schema import AgentMitre, AgentMitreRequest, AgentRansomware, AgentRansomwareRequest, AgentCVE, AgentCVERequest, AgentIoC, AgentIoCRequest, AgentCompliance, AgentComplianceRequest, AgentInfo, AgentInfoRequest, AgentInfoResponse
 from app.controllers.auth import AuthController
 from app.models.user_db import UserModel
 from app.ext.error import UnauthorizedError, PermissionError, InternalServerError
 from app.controllers.agent import AgentDetailController
+from app.controllers.wazuh import AgentController
 from logging import getLogger
+from datetime import datetime
 
 
 logger = getLogger('app_logger')
 
 router = APIRouter()
+
+@router.get("/agent-info", response_model=AgentInfoResponse)
+async def get_agent_info(
+    agent_name: str,
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get the agent info.
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/agent_detail/agent-info' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+      -d '{"agent_name": "agent_name"}'
+    Response:
+    {
+      "success": true,
+      "content": [
+        {
+          "agent_id": "string",
+          "agent_name": "string",
+          "ip": "string",
+          "os": "string",
+          "os_version": "string",
+          "agent_status": "string",
+          "last_keep_alive": "2023-07-30T12:00:00Z"
+        }
+      ]
+    }
+    """
+    try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
+        if current_user.user_role == 'admin':
+            agent_details = await AgentDetailController.get_agent_info(agent_name)
+            return AgentInfoResponse(success=True, message="Agent info retrieved successfully", content=agent_details)
+        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
+            raise PermissionError("Permission denied")
+        agent_details = await AgentDetailController.get_agent_info(agent_name)
+        return AgentInfoResponse(success=True, message="Agent info retrieved successfully", content=agent_details)
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("Permission denied")
+    except Exception as e:
+        logger.error(f"Error in get_agent_info endpoint: {e}")
+        raise InternalServerError()
 
 @router.get("/agent_mitre", response_model=AgentMitre)
 async def get_agent_mitre(
@@ -23,7 +76,7 @@ async def get_agent_mitre(
       'https://flask.aixsoar.com/api/agent_detail/agent_mitre?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer Token'
-      -d '{"agent_id": "001"}'
+      -d '{"agent_name": "agent_name"}'
     Response:
     {
         "mitre_data": [
@@ -46,13 +99,17 @@ async def get_agent_mitre(
     """
 
     try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            group_names = None
-        else:
-            group_names = UserModel.get_user_groups(current_user.id)    
-        if not group_names:
+            mitre_data = await AgentDetailController.get_agent_mitre(request.agent_name, request.start_time, request.end_time)
+            return AgentMitre(mitre_data=mitre_data)
+        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
             raise PermissionError("Permission denied")
-        mitre_data = await AgentDetailController.get_agent_mitre(request.agent_id, request.start_time, request.end_time)
+        mitre_data = await AgentDetailController.get_agent_mitre(request.agent_name, request.start_time, request.end_time)
         return AgentMitre(mitre_data=mitre_data)
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
@@ -60,7 +117,6 @@ async def get_agent_mitre(
         raise PermissionError("Permission denied")
     except Exception as e:
         raise InternalServerError(f"An unexpected error occurred: {str(e)}")
-
 
 @router.get("/agent_ransomware", response_model=AgentRansomware)
 async def get_agent_ransomware(
@@ -74,23 +130,30 @@ async def get_agent_ransomware(
       'https://flask.aixsoar.com/api/agent_detail/agent_ransomware?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer Token'
-      -d '{"agent_id": "001"}'
+      -d '{"agent_name": "test0"}'
     Response:
     {
         "ransomware_data": {
-        "ransomware_name": ["wannacry", "lockbit"],
+        "ransomware_description": [
+            "VirusTotal: Alert - c:\\users\\admin\\downloads\\unnamed0.zip - 5 engines detected this file",
+            "VirusTotal: Alert - c:\\users\\admin\\downloads\\teslacrypt.zip - 5 engines detected this file",
+        ],
         "ransomware_count": 2
         }
     }
     """
     try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            group_names = None
-        else:
-            group_names = UserModel.get_user_groups(current_user.id)    
-        if not group_names:
+            ransomware_data = await AgentDetailController.get_agent_ransomware(request.agent_name, request.start_time, request.end_time)
+            return AgentRansomware(ransomware_data=ransomware_data)
+        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
             raise PermissionError("Permission denied")
-        ransomware_data = await AgentDetailController.get_agent_ransomware(request.agent_id, request.start_time, request.end_time)
+        ransomware_data = await AgentDetailController.get_agent_ransomware(request.agent_name, request.start_time, request.end_time)
         return AgentRansomware(ransomware_data=ransomware_data)
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
@@ -98,6 +161,7 @@ async def get_agent_ransomware(
         raise PermissionError("Permission denied")
     except Exception as e:
         raise InternalServerError(f"An unexpected error occurred: {str(e)}")
+    
 @router.get("/agent_cve", response_model=AgentCVE)
 async def get_agent_cve(
     request: AgentCVERequest = Depends(),
@@ -110,7 +174,7 @@ async def get_agent_cve(
       'https://flask.aixsoar.com/api/agent_detail/agent_cve?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer Token'
-      -d '{"agent_id": "001"}'
+      -d '{"agent_name": "001"}'    
     Response:
     {
         "cve_data": {
@@ -135,7 +199,6 @@ async def get_agent_cve(
     except Exception as e:
         raise InternalServerError()
 
-
 @router.get("/agent_ioc", response_model=AgentIoC)
 async def get_agent_ioc(
     request: AgentIoCRequest = Depends(),
@@ -148,7 +211,7 @@ async def get_agent_ioc(
       'https://flask.aixsoar.com/api/agent_detail/agent_ioc?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer Token'
-      -d '{"agent_id": "001"}'
+      -d '{"agent_name": "001"}'
     Response:
     {
         "ioc_data": [
