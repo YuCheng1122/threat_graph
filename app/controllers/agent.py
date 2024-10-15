@@ -4,7 +4,7 @@ from functools import wraps
 from app.ext.error import UserNotFoundError, UnauthorizedError, PermissionError, ElasticsearchError, HTTPError
 from datetime import datetime
 from typing import Dict, List
-
+from app.schemas.agent_schema import AgentInfo
 # Get the centralized logger
 logger = getLogger('app_logger')
 
@@ -31,11 +31,27 @@ def handle_exceptions(func):
 
 
 class AgentDetailController:
+
     @staticmethod
     @handle_exceptions
-    async def get_agent_mitre(agent_id: str, start_time: str, end_time: str):
+    async def get_agent_info(agent_name: str) -> AgentInfo:
+        agent_detail = AgentDetail(agent_name)
+        agent_info = agent_detail.get_agent_info(agent_name)
+        return AgentInfo(
+            agent_id=agent_info['agent_id'],
+            agent_name=agent_info['agent_name'],
+            ip=agent_info['ip'],
+            os=agent_info['os'],
+            os_version=agent_info['os_version'],
+            agent_status=agent_info['agent_status'],
+            last_keep_alive=agent_info['last_keep_alive']
+        )
 
-        agent_detail = AgentDetail(agent_id)
+    @staticmethod
+    @handle_exceptions
+    async def get_agent_mitre(agent_name: str, start_time: str, end_time: str):
+
+        agent_detail = AgentDetail(agent_name)
         start_datetime = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
         end_datetime = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
         
@@ -74,18 +90,16 @@ class AgentDetailController:
     
     @staticmethod
     @handle_exceptions
-    async def get_agent_ransomware(agent_id: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
-        agent_detail = AgentDetail(agent_id)
-        start_datetime = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
-        end_datetime = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
-        
-        raw_data = agent_detail.get_ransomware_data(start_datetime, end_datetime)
+    async def get_agent_ransomware(agent_name: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
+
+        agent_detail = AgentDetail(agent_name)
+        raw_data = agent_detail.get_ransomware_data(agent_name,start_time, end_time)
         
         ransomware_descriptions = set()
         for hit in raw_data:
             source = hit['_source']
-            if 'rule' in source and 'description' in source['rule']:
-                ransomware_descriptions.add(source['rule']['description'])
+            if 'rule_description' in source:
+                ransomware_descriptions.add(source['rule_description'])
         return {
             "ransomware_name": list(ransomware_descriptions),
             "ransomware_count": len(ransomware_descriptions)
@@ -93,10 +107,10 @@ class AgentDetailController:
 
     @staticmethod
     @handle_exceptions
-    async def get_agent_cve(agent_id: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
-        logger.info(f"get_agent_cve called with agent_id: {agent_id}, start_time: {start_time}, end_time: {end_time}")
+    async def get_agent_cve(agent_name: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
+        logger.info(f"get_agent_cve called with agent_name: {agent_name}, start_time: {start_time}, end_time: {end_time}")
         
-        agent_detail = AgentDetail(agent_id)
+        agent_detail = AgentDetail(agent_name)
         start_datetime = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
         end_datetime = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
         
@@ -115,10 +129,10 @@ class AgentDetailController:
 
     @staticmethod
     @handle_exceptions
-    async def get_agent_ioc(agent_id: str, start_time: str, end_time: str) -> List[Dict[str, str | int | List[str]]]:
-        logger.info(f"get_agent_ioc called with agent_id: {agent_id}, start_time: {start_time}, end_time: {end_time}")
+    async def get_agent_ioc(agent_name: str, start_time: str, end_time: str) -> List[Dict[str, str | int | List[str]]]:
+        logger.info(f"get_agent_ioc called with agent_name: {agent_name}, start_time: {start_time}, end_time: {end_time}")
         
-        agent_detail = AgentDetail(agent_id)
+        agent_detail = AgentDetail(agent_name)
         start_datetime = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
         end_datetime = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
         
@@ -146,10 +160,10 @@ class AgentDetailController:
 
     @staticmethod
     @handle_exceptions
-    async def get_agent_compliance(agent_id: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
-        logger.info(f"get_agent_compliance called with agent_id: {agent_id}, start_time: {start_time}, end_time: {end_time}")
+    async def get_agent_compliance(agent_name: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
+        logger.info(f"get_agent_compliance called with agent_name: {agent_name}, start_time: {start_time}, end_time: {end_time}")
         
-        agent_detail = AgentDetail(agent_id)
+        agent_detail = AgentDetail(agent_name)
         start_datetime = datetime.fromisoformat(start_time.replace('Z', '+00:00'))
         end_datetime = datetime.fromisoformat(end_time.replace('Z', '+00:00'))
         
