@@ -229,11 +229,11 @@ class AgentController:
         return AgentMessagesResponse(total=total_count, datas=agent_messages)
     
     @staticmethod
-    async def get_line_chart_data(start_time: datetime, end_time: datetime) -> LineChartResponse:
+    async def get_line_chart_data(current_user: UserModel, start_time: datetime, end_time: datetime) -> LineChartResponse:
         start_time = start_time.replace(tzinfo=tzutc())
         end_time = end_time.replace(tzinfo=tzutc())
         
-        events = await EventModel.get_events_in_timerange(start_time, end_time)
+        events = await EventModel.get_events_in_timerange(current_user, start_time, end_time)
         
         rule_counts = defaultdict(lambda: defaultdict(int))
         time_range = end_time - start_time
@@ -263,13 +263,13 @@ class AgentController:
         return LineChartResponse(label=[data.name for data in line_datas], datas=line_datas)
     
     @staticmethod
-    async def get_total_event_count(start_time: datetime, end_time: datetime) -> str:
-        count = await EventModel.get_high_level_event_count(start_time, end_time)
+    async def get_total_event_count(current_user: UserModel, start_time: datetime, end_time: datetime) -> str:
+        count = await EventModel.get_high_level_event_count(current_user, start_time, end_time)
         return f"{count:,}" 
     
     @staticmethod
-    async def get_pie_chart_data(start_time: datetime, end_time: datetime) -> PieChartData:
-        events = await EventModel.get_events_for_pie_chart(start_time, end_time)
+    async def get_pie_chart_data(current_user: UserModel, start_time: datetime, end_time: datetime) -> PieChartData:
+        events = await EventModel.get_events_for_pie_chart(current_user, start_time, end_time)
         
         agents_counter = Counter()
         mitre_counter = Counter()

@@ -10,6 +10,7 @@ from dotenv import load_dotenv, find_dotenv
 from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent
 from app.ext.error import ElasticsearchError, UserNotFoundError
 from logging import getLogger
+from app.models.user_db import UserModel
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -334,14 +335,21 @@ class EventModel:
             raise ElasticsearchError(f"Error getting events: {str(e)}")
         
     @staticmethod
-    async def get_events_in_timerange(start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
+    async def get_events_in_timerange(current_user: UserModel, start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
         query = {
             "query": {
-                "range": {
-                    "timestamp": {
-                        "gte": start_time.isoformat(),
-                        "lt": end_time.isoformat()
-                    }
+                "bool": {
+                    "must": [
+                        {"term": {"wazuh_data_type": "wazuh_events"}},
+                        {
+                            "range": {
+                                "timestamp": {
+                                    "gte": start_time.isoformat(),
+                                    "lt": end_time.isoformat()
+                                }
+                            }
+                        }
+                    ]
                 }
             },
             "size": size,
@@ -350,13 +358,21 @@ class EventModel:
             ]
         }
         try:
-            result = es.search(index=get_index_name(), body=query)
+            if current_user.user_role == 'admin':
+                result = es.search(index=get_index_name(), body=query)
+            else:
+                group_names = UserModel.get_user_groups(current_user.id)
+                permission_granted = UserModel.check_user_group(current_user.id, group_names)
+                if not permission_granted:
+                    return []
+                query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
+                result = es.search(index=get_index_name(), body=query)
             return result['hits']['hits']
         except Exception as e:
             raise ElasticsearchError(f"Error getting events: {str(e)}")
     
     @staticmethod
-    async def get_high_level_event_count(start_time: datetime, end_time: datetime) -> int:
+    async def get_high_level_event_count(current_user: UserModel, start_time: datetime, end_time: datetime) -> int:
         query = {
             "query": {
                 "bool": {
@@ -382,20 +398,36 @@ class EventModel:
             }
         }
         try:
-            result = es.count(index=get_index_name(), body=query)
+            if current_user.user_role == 'admin':
+                result = es.count(index=get_index_name(), body=query)
+            else:
+                group_names = UserModel.get_user_groups(current_user.id)
+                permission_granted = UserModel.check_user_group(current_user.id, group_names)
+                if not permission_granted:
+                    return "0"
+                query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
+                result = es.count(index=get_index_name(), body=query)
+            logger.info(f"High-level event count: {result['count']}")
             return result['count']
         except Exception as e:
             raise ElasticsearchError(f"Error getting high-level event count: {str(e)}")
         
     @staticmethod
-    async def get_events_for_pie_chart(start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
+    async def get_events_for_pie_chart(current_user: UserModel, start_time: datetime, end_time: datetime, size: int = 10000) -> List[Dict]:
         query = {
             "query": {
-                "range": {
-                    "timestamp": {
-                        "gte": start_time.isoformat(),
-                        "lt": end_time.isoformat()
-                    }
+                "bool": {   
+                    "must": [
+                        {"term": {"wazuh_data_type": "wazuh_events"}},
+                        {
+                            "range": {
+                                "timestamp": {
+                                    "gte": start_time.isoformat(),
+                                    "lt": end_time.isoformat()
+                                }
+                            }
+                        }
+                    ]
                 }
             },
             "size": size,
@@ -404,7 +436,15 @@ class EventModel:
             ]
         }
         try:
-            result = es.search(index=get_index_name(), body=query)
+            if current_user.user_role == 'admin':
+                result = es.search(index=get_index_name(), body=query)
+            else:
+                group_names = UserModel.get_user_groups(current_user.id)
+                permission_granted = UserModel.check_user_group(current_user.id, group_names)
+                if not permission_granted:
+                    return []
+                query["query"]["bool"]["must"].append({"terms": {"group_name": group_names}})
+                result = es.search(index=get_index_name(), body=query)
             return result['hits']['hits']
         except Exception as e:
             raise ElasticsearchError(f"Error getting events for pie chart: {str(e)}")
