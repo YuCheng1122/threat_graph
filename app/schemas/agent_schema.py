@@ -26,9 +26,13 @@ class AgentMitreRequest(BaseModel):
     agent_name: str
     start_time: str
     end_time: str
+    
+class RansomwareItem(BaseModel):
+    name: str
+    value: int
 
 class AgentRansomware(BaseModel):
-    ransomware_data: Dict[str, List[str] | int]
+    ransomware_data: List[RansomwareItem]
 
 class AgentRansomwareRequest(BaseModel):
     agent_name: str

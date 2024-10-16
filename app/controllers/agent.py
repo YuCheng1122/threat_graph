@@ -93,17 +93,19 @@ class AgentDetailController:
     async def get_agent_ransomware(agent_name: str, start_time: str, end_time: str) -> Dict[str, List[str] | int]:
 
         agent_detail = AgentDetail(agent_name)
-        raw_data = agent_detail.get_ransomware_data(agent_name,start_time, end_time)
+        raw_data = agent_detail.get_ransomware_data(agent_name, start_time, end_time)
         
-        ransomware_descriptions = set()
+        ransomware_counts = {}
         for hit in raw_data:
             source = hit['_source']
             if 'rule_description' in source:
-                ransomware_descriptions.add(source['rule_description'])
-        return {
-            "ransomware_name": list(ransomware_descriptions),
-            "ransomware_count": len(ransomware_descriptions)
-        }
+                ransomware_name = source['rule_description']
+                ransomware_counts[ransomware_name] = ransomware_counts.get(ransomware_name, 0) + 1
+        
+        return [
+            {"name": name, "value": count}
+            for name, count in ransomware_counts.items()
+        ]
 
     @staticmethod
     @handle_exceptions
