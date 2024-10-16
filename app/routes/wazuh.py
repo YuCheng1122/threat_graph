@@ -232,7 +232,7 @@ async def get_line_chart_data(
         start_time_utc = request.start_time.replace(tzinfo=tzutc())
         end_time_utc = request.end_time.replace(tzinfo=tzutc())
         
-        chart_data = await AgentController.get_line_chart_data(start_time_utc, end_time_utc)
+        chart_data = await AgentController.get_line_chart_data(current_user,start_time_utc, end_time_utc)
         return chart_data
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
@@ -269,7 +269,7 @@ async def get_total_event(
     
     """
     try:
-        count = await AgentController.get_total_event_count(request.start_time, request.end_time)
+        count = await AgentController.get_total_event_count(current_user,start_time=request.start_time, end_time=request.end_time)
         return TotalEventAPIResponse(success=True, content=TotalEventResponse(count=count))
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
@@ -329,7 +329,7 @@ async def get_pie_chart_data(
     
     """
     try:
-        pie_chart_data = await AgentController.get_pie_chart_data(request.start_time, request.end_time)
+        pie_chart_data = await AgentController.get_pie_chart_data(current_user,request.start_time, request.end_time)
         return PieChartAPIResponse(success=True, content=pie_chart_data)
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
