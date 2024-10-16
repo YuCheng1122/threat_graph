@@ -6,7 +6,6 @@ from app.ext.error import UnauthorizedError, PermissionError, InternalServerErro
 from app.controllers.agent import AgentDetailController
 from app.controllers.wazuh import AgentController
 from logging import getLogger
-from datetime import datetime
 
 
 logger = getLogger('app_logger')
@@ -133,13 +132,16 @@ async def get_agent_ransomware(
       -d '{"agent_name": "test0"}'
     Response:
     {
-        "ransomware_data": {
-        "ransomware_description": [
-            "VirusTotal: Alert - c:\\users\\admin\\downloads\\unnamed0.zip - 5 engines detected this file",
-            "VirusTotal: Alert - c:\\users\\admin\\downloads\\teslacrypt.zip - 5 engines detected this file",
-        ],
-        "ransomware_count": 2
-        }
+        "ransomware_data": [
+            {
+                "name": "VirusTotal: Alert - c:\\users\\admin\\downloads\\unnamed0.zip - 5 engines detected this file",
+                "value": 1
+            },
+            {
+                "name": "VirusTotal: Alert - c:\\users\\admin\\downloads\\teslacrypt.zip - 5 engines detected this file",
+                "value": 1
+            }
+        ]
     }
     """
     try:
@@ -160,8 +162,8 @@ async def get_agent_ransomware(
     except PermissionError:
         raise PermissionError("Permission denied")
     except Exception as e:
-        raise InternalServerError(f"An unexpected error occurred: {str(e)}")
-    
+        raise InternalServerError(f"An unexpected error occurred: {str(e)}") 
+
 @router.get("/agent_cve", response_model=AgentCVE)
 async def get_agent_cve(
     request: AgentCVERequest = Depends(),
