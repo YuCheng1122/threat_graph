@@ -450,7 +450,7 @@ class EventModel:
             raise ElasticsearchError(f"Error getting events for pie chart: {str(e)}")
         
     @staticmethod
-    async def load_messages(start_time: datetime, end_time: datetime, group_names: Optional[List[str]] = None, limit: int = 20) -> Tuple[List[Dict], int]:
+    async def load_messages(start_time: datetime, end_time: datetime, group_names: Optional[List[str]] = None, limit: int = 100) -> Tuple[List[Dict], int]:
         """
         Load high-level messages (rule_level >=8) from Elasticsearch within a specified time range.
         """

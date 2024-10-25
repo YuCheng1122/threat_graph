@@ -210,7 +210,7 @@ class AgentController:
 
     @staticmethod
     @handle_exceptions
-    async def get_messages(user: UserModel, start_time: datetime, end_time: datetime, limit: int = 20) -> AgentMessagesResponse:
+    async def get_messages(user: UserModel, start_time: datetime, end_time: datetime, limit: int = 100) -> AgentMessagesResponse:
         """
         Retrieve high-level messages (rule_level > 8) for all agents the user has access to within the specified time range.
         """

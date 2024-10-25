@@ -39,7 +39,7 @@ async def get_modbus_events(
     }
     """
     try:
-        if current_user.user_role != 'admin' and current_user.username != 'redteam':
+        if current_user.user_role != 'admin' and current_user.username != 'redteam2':
             raise PermissionError
         else:
             events = ModbusEventController.get_modbus_events(request.start_time, request.end_time)
