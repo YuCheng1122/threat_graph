@@ -10,6 +10,7 @@ from datetime import datetime
 from dateutil.parser import parse
 from dateutil.tz import tzutc
 from logging import getLogger
+from datetime import timezone   
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -170,23 +171,39 @@ class AgentController:
         if user.user_role == 'admin':
             group_names = None  # Admin can see all groups
         else:
-            print("else executed")
-            print(user.id)
             group_names = UserModel.get_user_groups(user.id)
             logger.info(f"group_names: {group_names}")
             if not group_names:
                 return []
 
         agent_data = AgentModel.get_latest_agent_details(group_names)
-        agent_details = []
+        # 使用字典來存儲每個 agent_name 的最新記錄
+        latest_agents = {}
+        now = datetime.now(timezone.utc)
+
         for source in agent_data:
-            agent_details.append(AgentDetailResponse(
-                agent_name=source['agent_name'],
-                ip=source['ip'],
-                os=source['os'],
-                agent_status=source['agent_status'],
-                last_keep_alive=datetime.fromisoformat(source['last_keep_alive'].replace('Z', '+00:00'))
-                ))
+            agent_name = source['agent_name']
+            last_keep_alive = datetime.fromisoformat(source['last_keep_alive'].replace('Z', '+00:00'))
+            
+            # 如果 agent_name 不在字典中，或者新的記錄比現有的更近，則更新字典
+            if agent_name not in latest_agents or (now - last_keep_alive) < (now - latest_agents[agent_name]['last_keep_alive']):
+                latest_agents[agent_name] = {
+                    'ip': source['ip'],
+                    'os': source['os'],
+                    'agent_status': source['agent_status'],
+                    'last_keep_alive': last_keep_alive
+                }
+                        # 將字典轉換為 AgentDetailResponse 列表
+        agent_details = [
+            AgentDetailResponse(
+                agent_name=agent_name,
+                ip=data['ip'],
+                os=data['os'],
+                agent_status=data['agent_status'],
+                last_keep_alive=data['last_keep_alive']
+            ) for agent_name, data in latest_agents.items()
+        ]
+
         return agent_details
     
     # -------------------------------------------------------------------------------- Events logic --------------------------------------------------------------------------------
