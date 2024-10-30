@@ -13,8 +13,10 @@ from app.routes.wazuh import router as wazuh_router
 from app.routes.manage import router as manage_router
 from app.routes.agent_detail import router as agent_detail_router
 from app.routes.modbus_events import router as modbus_events_router
+from app.models.user_db import Base, engine
 from app.ext.error_handler import add_error_handlers
 from fastapi.middleware.cors import CORSMiddleware  
+
 
 # Load environment variables
 load_dotenv()
@@ -47,8 +49,15 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    app_logger.info("Initializing database...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        app_logger.info("Database initialized successfully")
+    except Exception as e:
+        app_logger.error(f"Failed to initialize database: {str(e)}")
 
 # CORS middleware
 app.add_middleware(
@@ -58,7 +67,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 # Include the API router
 app.include_router(view_router, prefix="/api/view")

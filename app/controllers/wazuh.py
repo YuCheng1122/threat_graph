@@ -118,6 +118,7 @@ class AgentController:
                 return []
 
         agents = await AgentModel.load_agents(start_time, end_time, group_names)
+        logger.info(f"agents: {agents}")
 
         summary = AgentController.calculate_agent_summary(agents)
         return summary
