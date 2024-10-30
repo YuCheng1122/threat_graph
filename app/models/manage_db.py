@@ -1,61 +1,58 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, select
-from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from logging import getLogger
-from dotenv import load_dotenv
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+from app.models.user_db import GroupSignup, UserSignup, SessionLocal
+from app.models.wazuh_db import AgentModel
 from app.schemas.manage import UserInfo
-import os
+from logging import getLogger
 from typing import List
-
 
 logger = getLogger('app_logger')
 
-load_dotenv()
+class ManageModel:
 
-# Database setup
-DATABASE_URL = os.getenv("DATABASE_URL")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-class UserSignup(Base):
-    __tablename__ = 'user_signup'
-
-    id= Column(Integer, primary_key=True)
-    email = Column(String(255), nullable=False)
-    username = Column(String(255), nullable=False)
-    password = Column(String(255), nullable=False)
-    company_name = Column(String(255), nullable=False)
-    user_role = Column(String(50), nullable=False, default="user")
-    license_amount = Column(Integer, default=0)
-    disabled = Column(Integer, default=1)
-    create_date = Column(DateTime)
-    update_date = Column(DateTime)
-
-    groups = relationship("Group", back_populates="user")
-
-    @classmethod
-    def toggle_disabled_status(cls, user_id: int) -> bool:
+    @staticmethod
+    def toggle_disabled_status(user_id: int) -> bool:
         """
-        Toggle the disabled status of a user.
+        Toggle the disabled status of a user and update group_signup.
+        Only create group_signup entry when enabling a user (disabled -> enabled).
         Returns the new disabled status.
         """
         with SessionLocal() as session:
-            user = session.query(cls).filter(cls.id == user_id).first()
-            if user:
-                user.disabled = not user.disabled
-                user.update_date = func.now()
-                session.commit()
-                return user.disabled
-            return None
+            try:
+                user = session.query(UserSignup).filter(UserSignup.id == user_id).first()
+                if user:
+                    was_disabled = bool(user.disabled)
+                    user.disabled = not user.disabled
+                    user.update_date = func.now()
+                    
+                    if was_disabled and not user.disabled:
+                        group_signup = GroupSignup(
+                            group_name=user.username,
+                            user_signup_id=user.id
+                        )
+                        
+                        existing_group = session.query(GroupSignup).filter(
+                            GroupSignup.group_name == user.username,
+                            GroupSignup.user_signup_id == user.id
+                        ).first()
+                        
+                        if not existing_group:
+                            session.add(group_signup)
+                            logger.info(f"Created group_signup for user {user.username}")
+                    
+                    session.commit()
+                    return user.disabled
+                return None
+                
+            except Exception as e:
+                logger.error(f"Error in toggle_disabled_status: {str(e)}")
+                session.rollback()
+                raise
 
-    @classmethod
-    def update_license_amount(cls, user_id: int, license_amount: int):
+    @staticmethod
+    def update_license_amount(user_id: int, license_amount: int):
         with SessionLocal() as session:
-            user = session.query(cls).filter(cls.id == user_id).first()
+            user = session.query(UserSignup).filter(UserSignup.id == user_id).first()
             if user:
                 user.license_amount = license_amount
                 user.update_date = func.now()
@@ -63,29 +60,31 @@ class UserSignup(Base):
                 return True
             return False
 
-    @classmethod
-    def get_user_groups(cls, user_id: int) -> List[str]:
+    @staticmethod
+    def get_user_groups(user_id: int) -> List[str]:
         with SessionLocal() as session:
-            user = session.query(cls).filter(cls.id == user_id).first()
+            user = session.query(UserSignup).filter(UserSignup.id == user_id).first()
             if user:
                 return [group.group_name for group in user.groups]
             return []
 
-    @classmethod
-    def get_user_license(cls, user_id: int) -> int:
+    @staticmethod
+    def get_user_license(user_id: int) -> int:
         with SessionLocal() as session:
-            user = session.query(cls).filter(cls.id == user_id).first()
+            user = session.query(UserSignup).filter(UserSignup.id == user_id).first()
             return user.license_amount if user else 0
 
-    @classmethod
-    def get_total_license(cls) -> int:
+    @staticmethod
+    def get_total_license() -> int:
         with SessionLocal() as session:
-            result = session.execute(select(func.sum(cls.license_amount))).scalar()
+            result = session.execute(
+                select(func.sum(UserSignup.license_amount))
+            ).scalar()
             return result or 0
-    
-    @classmethod
-    def get_all_users(cls, db: Session):
-        users = db.query(cls).filter(cls.user_role != 'admin').all()
+
+    @staticmethod
+    def get_all_users(db: Session):
+        users = db.query(UserSignup).filter(UserSignup.user_role != 'admin').all()
         return [
             UserInfo(
                 user_id=user.id,
@@ -98,15 +97,35 @@ class UserSignup(Base):
             )
             for user in users
         ]
-
-class Group(Base):
-    __tablename__ = 'group_signup'
-
-    group_name = Column(String(255), primary_key=True, nullable=False)
-    user_signup_id = Column(Integer, ForeignKey('user_signup.id'), nullable=True)
-    create_date = Column(DateTime, server_default=func.now(), nullable=True)
-    update_date = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=True)
-
-    user = relationship("UserSignup", back_populates="groups")
     
-Base.metadata.create_all(bind=engine)
+    @staticmethod
+    def get_next_agent_name(username: str, group_names: List[str]) -> str:
+        """
+        Get the next available agent name based on existing agents
+        Returns format like '{username}_001', '{username}_002', etc.
+        """
+        try:
+            # Get existing agent names from latest agent details
+            agent_details = AgentModel.get_latest_agent_details(group_names)
+            existing_names = [agent['agent_name'] for agent in agent_details]
+            
+            # Find the highest number for this username
+            max_num = 0
+            prefix = f"{username}_"
+            for name in existing_names:
+                if name.startswith(prefix):
+                    try:
+                        num = int(name.split('_')[1])
+                        max_num = max(max_num, num)
+                    except (IndexError, ValueError):
+                        continue
+            
+            # Generate next name
+            next_num = max_num + 1
+            next_name = f"{prefix}{next_num:03d}"  # Format: username_001, username_002, etc.
+            
+            return next_name
+            
+        except Exception as e:
+            logger.error(f"Error in get_next_agent_name: {str(e)}")
+            raise

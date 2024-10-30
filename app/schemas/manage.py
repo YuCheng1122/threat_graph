@@ -30,3 +30,6 @@ class UserInfo(BaseModel):
 
 class UserListResponse(BaseModel):
     users: list[UserInfo]
+
+class NextAgentNameResponse(BaseModel):
+    next_agent_name: str

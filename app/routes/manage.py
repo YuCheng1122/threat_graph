@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.controllers.manage import ManageController
-from app.ext.error import UnauthorizedError, InternalServerError
+from app.ext.error import UnauthorizedError, InternalServerError, PermissionError
 from app.controllers.auth import AuthController
 from logging import getLogger
 from app.models.user_db import UserModel
-from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, ToggleUserStatusRequest, UpdateLicenseRequest, GroupListResponse, GroupEmailMap
+from app.schemas.manage import TotalAgentsAndLicenseResponse, UserListResponse, ToggleUserStatusRequest, UpdateLicenseRequest, GroupListResponse, GroupEmailMap, NextAgentNameResponse
 from app.schemas.user import UserSignup
 from app.models.manage_db import SessionLocal
 
@@ -103,3 +103,31 @@ async def read_users(
     return UserListResponse(users=users)
 
 
+@router.get("/next-agent-name", response_model=NextAgentNameResponse)
+async def get_next_agent_name(
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """
+    Endpoint to get the next available agent name
+
+    Request:
+    curl -X 'GET' \
+      'https://flask.aixsoar.com/api/manage/next-agent-name' \
+      -H 'accept: application/json' \
+      -H 'Authorization: Bearer [Token]'
+
+    Response:
+    {
+      "next_agent_name": "username_001"
+    }
+    """
+    try:
+        next_name = ManageController.get_next_agent_name(current_user)
+        return NextAgentNameResponse(next_agent_name=next_name)
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("User does not have permission to access this resource")
+    except Exception as e:
+        logger.error(f"Error in get_next_agent_name endpoint: {e}")
+        raise InternalServerError()
