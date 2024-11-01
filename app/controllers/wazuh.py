@@ -4,7 +4,7 @@ from functools import wraps
 from app.models.wazuh_db import AgentModel, EventModel
 from app.models.user_db import UserModel
 from app.schemas.wazuh import Agent as AgentSchema, WazuhEvent, PieChartData, PieChartItem
-from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData, AgentDetailResponse
+from app.schemas.wazuh import AgentSummary, AgentMessagesResponse, AgentMessage, LineChartResponse, LineData, AgentDetailResponse, AgentDetailsAPIResponse
 from app.ext.error import ElasticsearchError, UnauthorizedError, PermissionError, HTTPError, UserNotFoundError
 from datetime import datetime
 from dateutil.parser import parse
@@ -185,8 +185,13 @@ class AgentController:
         for source in agent_data:
             agent_name = source['agent_name']
             last_keep_alive = datetime.fromisoformat(source['last_keep_alive'].replace('Z', '+00:00'))
-            registration_time = datetime.fromisoformat(source['registration_time'].replace('Z', '+00:00'))
-            # 如果 agent_name 不在字典中，或者新的記錄比現有的更近，則更新字典
+            
+            # 加入 registration_time 的預設值處理
+            try:
+                registration_time = datetime.fromisoformat(source['registration_time'].replace('Z', '+00:00')) if source.get('registration_time') else datetime(2024, 10, 31, tzinfo=timezone.utc)
+            except (ValueError, TypeError):
+                registration_time = datetime(2024, 10, 31, tzinfo=timezone.utc)
+            
             if agent_name not in latest_agents or (now - last_keep_alive) < (now - latest_agents[agent_name]['last_keep_alive']):
                 latest_agents[agent_name] = {
                     'ip': source['ip'],
@@ -195,7 +200,7 @@ class AgentController:
                     'last_keep_alive': last_keep_alive,
                     'registration_time': registration_time
                 }
-                        # 將字典轉換為 AgentDetailResponse 列表
+        # 將字典轉換為 AgentDetailResponse 列表
         agent_details = [
             AgentDetailResponse(
                 agent_name=agent_name,
