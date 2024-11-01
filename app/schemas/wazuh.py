@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Agent(BaseModel):
     agent_name: str = Field(..., example="test-agent-1", description="Name of the agent")
@@ -223,6 +223,9 @@ class AgentDetailResponse(BaseModel):
     os: str
     agent_status: str
     last_keep_alive: datetime
+    registration_time: Optional[datetime] = Field(
+        default_factory=lambda: datetime(2024, 10, 31, tzinfo=timezone.utc)
+    )
 
 class AgentDetailsAPIResponse(BaseModel):
     success: bool

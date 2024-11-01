@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from app.schemas.wazuh import (
     AgentInfoRequest, AgentInfoResponse, AgentSummaryResponse,AgentMessagesResponse, AgentMessagesRequest, 
     LineChartRequest, LineChartResponse, TotalEventAPIResponse, TotalEventRequest, TotalEventResponse,
-    PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent, AgentDetailResponse, AgentDetailsAPIResponse
+    PieChartAPIResponse, PieChartRequest, AgentInfoResponseContent, AgentDetailsAPIResponse
 )
 from app.controllers.wazuh import AgentController
 from app.controllers.auth import AuthController

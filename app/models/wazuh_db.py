@@ -217,10 +217,16 @@ class AgentModel:
             logger.info(f"Total hits: {result['hits']['total']['value']}")
             logger.info(f"Max score: {result['hits']['max_score']}")
             
-            agent_details = [hit['_source'] for hit in result['hits']['hits']]
-            logger.info(f"Number of agents retrieved: {len(agent_details)}")
-            logger.info(f"Sample agent detail: {json.dumps(agent_details[0] if agent_details else {}, indent=2)}")
-
+            agent_details = []
+            default_registration = datetime(2024, 10, 31)
+            
+            for hit in result['hits']['hits']:
+                source = hit['_source']
+                if not source.get('registration_time'):
+                    logger.warning(f"Missing registration_time for agent: {source.get('agent_name', 'unknown')}, using default value")
+                    source['registration_time'] = default_registration.isoformat()
+                agent_details.append(source)
+                
             return agent_details
         except Exception as e:
             logger.error(f"Error querying Elasticsearch: {str(e)}")
