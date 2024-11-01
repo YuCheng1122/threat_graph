@@ -9,6 +9,7 @@ class Agent(BaseModel):
     agent_status: str = Field(..., example="Active", description="Current status of the agent")
     status_code: int = Field(..., example=0, description="Status code of the agent")
     last_keep_alive: datetime = Field(..., example="2023-07-30T12:00:00Z", description="Last keep alive timestamp")
+    registration_time: datetime = Field(..., example="2023-07-30T12:00:00Z", description="Registration time of the agent")
     os: str = Field(..., example="Ubuntu", description="Operating system of the agent")
     os_version: str = Field(..., example="20.04", description="Version of the operating system")
     group_name: str = Field(..., example="group1", description="Name of the group this agent belongs to")
@@ -56,6 +57,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "agent_status": "Active",
                         "status_code": 0,
                         "last_keep_alive": "2023-07-30T12:00:00Z",
+                        "registration_time": "2023-07-30T12:00:00Z",
                         "os": "Ubuntu",
                         "os_version": "20.04",
                         "group_name": "group1",
@@ -68,6 +70,7 @@ class GetAgentInfoByGroupResponse(BaseModel):
                         "agent_status": "Active",
                         "status_code": 0,
                         "last_keep_alive": "2023-07-30T12:00:00Z",
+                        "registration_time": "2023-07-30T12:00:00Z",
                         "os": "CentOS",
                         "os_version": "7",
                         "group_name": "group1",

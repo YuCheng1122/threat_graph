@@ -185,14 +185,15 @@ class AgentController:
         for source in agent_data:
             agent_name = source['agent_name']
             last_keep_alive = datetime.fromisoformat(source['last_keep_alive'].replace('Z', '+00:00'))
-            
+            registration_time = datetime.fromisoformat(source['registration_time'].replace('Z', '+00:00'))
             # 如果 agent_name 不在字典中，或者新的記錄比現有的更近，則更新字典
             if agent_name not in latest_agents or (now - last_keep_alive) < (now - latest_agents[agent_name]['last_keep_alive']):
                 latest_agents[agent_name] = {
                     'ip': source['ip'],
                     'os': source['os'],
                     'agent_status': source['agent_status'],
-                    'last_keep_alive': last_keep_alive
+                    'last_keep_alive': last_keep_alive,
+                    'registration_time': registration_time
                 }
                         # 將字典轉換為 AgentDetailResponse 列表
         agent_details = [
@@ -201,7 +202,8 @@ class AgentController:
                 ip=data['ip'],
                 os=data['os'],
                 agent_status=data['agent_status'],
-                last_keep_alive=data['last_keep_alive']
+                last_keep_alive=data['last_keep_alive'],
+                registration_time=data['registration_time']
             ) for agent_name, data in latest_agents.items()
         ]
 

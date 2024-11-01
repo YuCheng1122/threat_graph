@@ -101,7 +101,7 @@ class AgentModel:
         self.os_version = agent.os_version
         self.wazuh_data_type = "agent_info"
         self.timestamp = datetime.utcnow() 
-
+        self.registration_time = agent.registration_time
     def to_dict(self) -> Dict:
         return {
             "agent_name": self.agent_name,
@@ -110,6 +110,7 @@ class AgentModel:
             "agent_status": str(self.agent_status).lower(),
             "status_code": self.status_code,
             "last_keep_alive": self.last_keep_alive.isoformat() if self.last_keep_alive else None,
+            "registration_time": self.registration_time.isoformat() if self.registration_time else None,
             "os": self.os,
             "os_version": self.os_version,
             "group_name": self.group_name, 
@@ -178,6 +179,7 @@ class AgentModel:
                 "os",
                 "agent_status",
                 "last_keep_alive",
+                "registration_time",
                 "group_name"
             ],
             "query": {
