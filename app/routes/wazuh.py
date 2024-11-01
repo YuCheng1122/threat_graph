@@ -364,7 +364,8 @@ async def get_agent_details(
           "ip": "string",
           "os": "string",
           "status_code": 0,
-          "last_keep_alive": "2023-07-30T12:00:00Z"
+          "last_keep_alive": "2023-07-30T12:00:00Z",
+          "registration_time": "2023-07-30T12:00:00Z"
         }
       ]
     }
