@@ -5,7 +5,7 @@ info:
   description: API for managing Wazuh agents and events
 
 servers:
-  - url: https://flask.aixsoar.com
+  - url: https://flask.avocadoai.xyz
     description: Production server
 
 paths:

@@ -5,15 +5,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
 from app.ext.error import ElasticsearchError, UserExistedError, AuthControllerError
+from app.tools.email import EmailNotification
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 from typing import List
 from logging import getLogger
 from sqlalchemy import select
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import smtplib
-from datetime import datetime
 import threading
 
 
@@ -22,13 +19,6 @@ logger = getLogger('app_logger')
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Email configuration
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
-ADMIN_EMAILS = os.getenv("ADMIN_EMAILS", "").split(",")
 
 # Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -115,10 +105,10 @@ class UserModel:
             session.commit()
             session.refresh(new_user)
             
-            # 在後台執行郵件發送
+            # Send email notification in background
             threading.Thread(
-                target=UserModel.send_signup_notification,
-                args=(username, company_name, new_user.create_date),
+                target=EmailNotification.send_signup_notification,
+                args=(username, company_name, email, license_amount, new_user.create_date),
                 daemon=True
             ).start()
             
@@ -167,60 +157,3 @@ class UserModel:
             return user
         finally:
             session.close()
-
-    @staticmethod
-    def send_signup_notification(username: str, company_name: str, signup_time: datetime):
-        """在後台發送註冊通知郵件給管理員"""
-        logger.info(f"Starting email notification process for company: {company_name}")
-        
-        if not EMAIL_PASSWORD:
-            logger.error("Email password not configured")
-            return
-            
-        try:
-            msg = MIMEMultipart()
-            msg['From'] = SENDER_EMAIL
-            msg['Subject'] = f"新用戶註冊通知 - {company_name}"
-            
-            body = f"""
-            您好，
-            
-            系統收到新用戶註冊申請：
-            
-            公司名稱：{company_name}
-            註冊時間：{signup_time.strftime('%Y-%m-%d %H:%M:%S')}
-            
-            請登入管理後台進行帳號核可作業。
-            
-            此為系統自動發送郵件，請勿直接回覆。
-            """
-            
-            msg.attach(MIMEText(body, 'plain'))
-            
-            try:
-                with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                    server.starttls()
-                    server.login(SENDER_EMAIL, EMAIL_PASSWORD)
-                    
-                    # 發送給所有管理員
-                    successful_sends = 0
-                    for admin_email in ADMIN_EMAILS:
-                        admin_email = admin_email.strip()
-                        if not admin_email:
-                            continue
-                            
-                        try:
-                            msg['To'] = admin_email
-                            server.send_message(msg)
-                            successful_sends += 1
-                            logger.info(f"Successfully sent notification to {admin_email}")
-                        except Exception as e:
-                            logger.error(f"Failed to send to {admin_email}: {str(e)}")
-                    
-                    logger.info(f"Email notification completed. Sent to {successful_sends}/{len(ADMIN_EMAILS)} recipients")
-                    
-            except Exception as e:
-                logger.error(f"SMTP error: {str(e)}")
-                
-        except Exception as e:
-            logger.error(f"Email preparation error: {str(e)}")
