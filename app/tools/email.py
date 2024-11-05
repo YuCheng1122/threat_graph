@@ -38,7 +38,7 @@ class EmailNotification:
         公司名稱：{company_name}
         註冊帳號：{username}
         註冊信箱：{email}
-        授權數量：{license_amount}
+        申請憑證數量：{license_amount} 組
         申請時間：{signup_time.strftime('%Y-%m-%d %H:%M:%S')}
         ───────────────────
         
@@ -75,8 +75,8 @@ class EmailNotification:
                             <td style="padding: 8px 0;">{email}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 8px 0;"><strong>授權數量：</strong></td>
-                            <td style="padding: 8px 0;">{license_amount}</td>
+                            <td style="padding: 8px 0;"><strong>申請憑證數量：</strong></td>
+                            <td style="padding: 8px 0;">{license_amount} 組</td>
                         </tr>
                         <tr>
                             <td style="padding: 8px 0;"><strong>申請時間：</strong></td>
@@ -86,7 +86,7 @@ class EmailNotification:
                 </div>
                 
                 <p>請儘速登入管理後台進行帳號審核作業。</p>
-                <p><a href="https://admin.yourcompany.com" style="color: #3498db;">點擊此處前往管理後台</a></p>
+                <p><a href="https://dashboard.avocadoai.xyz/" style="color: #3498db;">點擊此處前往管理後台</a></p>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                 
@@ -107,35 +107,34 @@ class EmailNotification:
 
     @classmethod
     def send_signup_notification(cls, username: str, company_name: str, email: str, 
-                               license_amount: int, signup_time: datetime) -> None:
+                            license_amount: int, signup_time: datetime) -> None:
         """Send signup notification email to administrators"""
         if not cls.EMAIL_PASSWORD:
             logger.error("Email password not configured")
             return
 
         try:
+            # 過濾掉空的郵件地址
+            admin_emails = [email.strip() for email in cls.ADMIN_EMAILS if email.strip()]
+            if not admin_emails:
+                logger.error("No valid admin email addresses configured")
+                return
+
             msg, _ = cls.create_signup_email(username, company_name, email, 
-                                           license_amount, signup_time)
+                                        license_amount, signup_time)
+            
+            # 設置所有收件者
+            msg['To'] = ', '.join(admin_emails)
             
             with smtplib.SMTP(cls.SMTP_SERVER, cls.SMTP_PORT) as server:
                 server.starttls()
                 server.login(cls.SENDER_EMAIL, cls.EMAIL_PASSWORD)
                 
-                successful_sends = 0
-                for admin_email in cls.ADMIN_EMAILS:
-                    admin_email = admin_email.strip()
-                    if not admin_email:
-                        continue
-                        
-                    try:
-                        msg['To'] = admin_email
-                        server.send_message(msg)
-                        successful_sends += 1
-                        logger.info(f"Successfully sent notification to {admin_email}")
-                    except Exception as e:
-                        logger.error(f"Failed to send to {admin_email}: {str(e)}")
-                
-                logger.info(f"Email notification completed. Sent to {successful_sends}/{len(cls.ADMIN_EMAILS)} recipients")
-                
+                try:
+                    server.send_message(msg)
+                    logger.info(f"Successfully sent notification to {len(admin_emails)} recipients")
+                except Exception as e:
+                    logger.error(f"Failed to send email: {str(e)}")
+                    
         except Exception as e:
             logger.error(f"Failed to send signup notification: {str(e)}")
