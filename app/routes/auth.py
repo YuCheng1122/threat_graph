@@ -30,11 +30,11 @@ async def signup_user(user: UserSignup):
     """
     Register a new user
     Request body:
-    - username: str
-    - password: str
-    - email: str
-    - company_name: str 
-    - license_amount: int
+    - username: str (required) - 使用者帳號
+    - password: str (required) - 使用者密碼
+    - email: str (required) - 聯絡信箱
+    - company_name: str (required) - 公司名稱
+    - license_amount: int (required) - 預期申請的憑證數量
     Response body:
     - success: bool
     - content: None
