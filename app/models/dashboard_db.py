@@ -1,9 +1,10 @@
 from elasticsearch import AsyncElasticsearch
 from dotenv import load_dotenv, find_dotenv
 import os
+import json
 from logging import getLogger
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -51,6 +52,7 @@ class DashboardModel:
         }
         result = await es.search(index=final_es_agent_index, body=query)
         buckets = result['aggregations']['status_count']['buckets']
+        
         return {
             "connected": next((b['doc_count'] for b in buckets if b['key'] == 'active'), 0),
             "disconnected": next((b['doc_count'] for b in buckets if b['key'] == 'disconnected'), 0)
@@ -296,16 +298,21 @@ class DashboardModel:
     @staticmethod
     async def load_authentication_piechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
         """Get authentication failure techniques statistics"""
+
+        must_conditions = [
+            {"term": {"wazuh_data_type": "wazuh_events"}},
+            {"wildcard": {"rule_description": "*Multiple authentication failures*"}},
+            {"exists": {"field": "rule_mitre_technique"}},
+            {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
+        ]
+        
+        if group_name and len(group_name) > 0:
+            must_conditions.append({"terms": {"group_name": group_name}})
+
         query = {
             "query": {
                 "bool": {
-                    "must": [
-                        {"term": {"wazuh_data_type": "wazuh_events"}},
-                        {"wildcard": {"rule_description": "*Multiple authentication failures*"}},
-                        {"exists": {"field": "rule_mitre_technique"}},
-                        {"terms": {"group_name": group_name}},
-                        {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
-                    ]
+                    "must": must_conditions
                 }
             },
             "aggs": {
@@ -320,7 +327,6 @@ class DashboardModel:
         }
 
         result = await es.search(index=final_es_agent_index, body=query)
-        print(result)
         return [
             {
                 "tactic": bucket['key'],
@@ -333,13 +339,17 @@ class DashboardModel:
     @staticmethod
     async def load_agent_events(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
         """Get agent event statistics"""
+        must_conditions = [
+            {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
+        ]
+        
+        if group_name:
+            must_conditions.append({"terms": {"group_name": group_name}})
+            
         query = {
             "query": {
                 "bool": {
-                    "must": [
-                        {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
-                        {"terms": {"group_name": group_name}}
-                    ]
+                    "must": must_conditions
                 }
             },
             "aggs": {
@@ -355,31 +365,44 @@ class DashboardModel:
         ]
 
     @staticmethod
-    async def load_event_table(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
+    async def load_event_table(start_time: datetime, end_time: datetime, group_name: Optional[List[str]] = None) -> List[Dict]:
         """Get event details"""
+        # 構建基礎的 must 條件
+        must_conditions = [
+            {"term": {"wazuh_data_type": "wazuh_events"}},
+            {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
+            {"range": {"rule_level": {"gte": 8}}} 
+        ]
+        
+        # 如果提供了 group_name，添加群組過濾
+        if group_name and len(group_name) > 0:
+            must_conditions.append({"terms": {"group_name": group_name}})
+            
         query = {
             "query": {
                 "bool": {
-                    "must": [
-                        {"term": {"wazuh_data_type": "wazuh_events"}},
-                        {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
-                        {"terms": {"group_name": group_name}},
-                        {"range": {"rule_level": {"gte": 8}}}  
-                    ]
+                    "must": must_conditions
                 }
             },
             "sort": [{"timestamp": "desc"}],
             "size": int(max_results)
         }
-        result = await es.search(index=final_es_agent_index, body=query)
-        return [
-            {
-                "timestamp": hit['_source']['timestamp'],
-                "agent_name": hit['_source']['agent_name'],
-                "rule_description": hit['_source'].get('rule_description', ''),
-                "rule_mitre_tactic": hit['_source'].get('rule_mitre_tactic', ''),
-                "rule_mitre_id": hit['_source'].get('rule_mitre_id', ''),
-                "rule_level": hit['_source'].get('rule_level', 0)
-            }
-            for hit in result['hits']['hits']
-        ]
+
+        try:
+            result = await es.search(index=final_es_agent_index, body=query)
+            logger.debug(f"Event table query: {json.dumps(query, indent=2)}") 
+            
+            return [
+                {
+                    "timestamp": hit['_source']['timestamp'],
+                    "agent_name": hit['_source']['agent_name'],
+                    "rule_description": hit['_source'].get('rule_description', ''),
+                    "rule_mitre_tactic": hit['_source'].get('rule_mitre_tactic', ''),
+                    "rule_mitre_id": hit['_source'].get('rule_mitre_id', ''),
+                    "rule_level": hit['_source'].get('rule_level', 0)
+                }
+                for hit in result['hits']['hits']
+            ]
+        except Exception as e:
+            logger.error(f"Error in load_event_table: {str(e)}")
+            raise

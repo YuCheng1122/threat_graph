@@ -45,7 +45,6 @@ async def get_agent_summary(
             agent_summary = await DashboardController.clean_agent_summary(
                 start_time=request.start_time,
                 end_time=request.end_time,
-                user_groups=user_groups
             )
             return {
                 "success": True,
@@ -105,7 +104,6 @@ async def get_agent_os(
             agent_os_data = await DashboardController.clean_agent_os(
                 start_time=request.start_time,
                 end_time=request.end_time,
-                user_groups=user_groups
             )
             return {
                 "success": True,
