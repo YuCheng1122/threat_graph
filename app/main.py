@@ -14,6 +14,7 @@ from app.routes.manage import router as manage_router
 from app.routes.agent_detail import router as agent_detail_router
 from app.routes.modbus_events import router as modbus_events_router
 from app.routes.dashboard import router as dashboard_router
+from app.routes.rds import router as rds_router
 from app.models.user_db import Base, engine
 from app.ext.error_handler import add_error_handlers
 from fastapi.middleware.cors import CORSMiddleware  
@@ -77,6 +78,7 @@ app.include_router(manage_router, prefix="/api/manage")
 app.include_router(agent_detail_router, prefix="/api/agent_detail")
 app.include_router(modbus_events_router, prefix="/api/modbus_events")
 app.include_router(dashboard_router, prefix="/api/dashboard")
+app.include_router(rds_router, prefix="/api/rds")
 
 # Include error handlers
 add_error_handlers(app)
