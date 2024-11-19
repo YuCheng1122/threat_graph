@@ -86,17 +86,34 @@ class RDSModel:
     def to_dict(self) -> Dict:
         """Convert the model instance to a dictionary for Elasticsearch."""
         return {
-            "timestamp": self.timestamp.isoformat(),
-            "account": self.account,
-            "edge_name": self.edge_name,
-            "edge_ip": self.edge_ip,
-            "edge_mac": self.edge_mac,
-            "edge_os": self.edge_os,
-            "tag_id": self.tag_id,
-            "tag": self.tag,
-            "name": self.name,
-            "score": self.score,
-            "data_type": self.data_type
+            "timestamp": [self.timestamp.isoformat()],
+            "account": [self.account],
+            "edge_name": [self.edge_name],
+            "edge_ip": [self.edge_ip],
+            "edge_mac": [self.edge_mac],
+            "edge_os": [self.edge_os],
+            "tag_id": [self.tag_id],
+            "tag": [self.tag],
+            "name": [self.name],
+            "score": [self.score],
+            "data_type": [self.data_type]
+        }
+
+    @staticmethod
+    def format_es_doc(doc: Dict) -> Dict:
+        """Format Elasticsearch document by taking first value from arrays."""
+        return {
+            "timestamp": doc["timestamp"][0] if isinstance(doc["timestamp"], list) else doc["timestamp"],
+            "account": doc["account"][0] if isinstance(doc["account"], list) else doc["account"],
+            "edge_name": doc["edge_name"][0] if isinstance(doc["edge_name"], list) else doc["edge_name"],
+            "edge_ip": doc["edge_ip"][0] if isinstance(doc["edge_ip"], list) else doc["edge_ip"],
+            "edge_mac": doc["edge_mac"][0] if isinstance(doc["edge_mac"], list) else doc["edge_mac"],
+            "edge_os": doc["edge_os"][0] if isinstance(doc["edge_os"], list) else doc["edge_os"],
+            "tag_id": doc["tag_id"][0] if isinstance(doc["tag_id"], list) else doc["tag_id"],
+            "tag": doc["tag"][0] if isinstance(doc["tag"], list) else doc["tag"],
+            "name": doc["name"][0] if isinstance(doc["name"], list) else doc["name"],
+            "score": doc["score"][0] if isinstance(doc["score"], list) else doc["score"],
+            "data_type": doc["data_type"][0] if isinstance(doc["data_type"], list) else doc["data_type"]
         }
 
     @staticmethod
@@ -125,7 +142,11 @@ class RDSModel:
         query = {
             "bool": {
                 "must": [
-                    {"term": {"data_type": "rds_detection"}},
+                    {
+                        "terms": {
+                            "data_type": ["rds_detection"]
+                        }
+                    },
                     {
                         "range": {
                             "timestamp": {
@@ -139,7 +160,11 @@ class RDSModel:
         }
 
         if account:
-            query["bool"]["must"].append({"term": {"account": account}})
+            query["bool"]["must"].append({
+                "terms": {
+                    "account": [account]
+                }
+            })
 
         try:
             result = es.search(
@@ -150,7 +175,8 @@ class RDSModel:
                     "size": 10000
                 }
             )
-            return [hit["_source"] for hit in result["hits"]["hits"]]
+            # Format the documents to handle array values
+            return [RDSModel.format_es_doc(hit["_source"]) for hit in result["hits"]["hits"]]
         except Exception as e:
             logger.error(f"Error retrieving RDS detections: {str(e)}")
             raise ElasticsearchError(f"Error retrieving detections: {str(e)}")
