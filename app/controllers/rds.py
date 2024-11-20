@@ -77,9 +77,13 @@ class RDSController:
                     edge_ip=det["edge_ip"],
                     edge_mac=det["edge_mac"],
                     edge_os=det["edge_os"],
+                    edge_ssid=det["edge_ssid"],
+                    edge_dns_gateway=det["edge_dns_gateway"],
                     tag_id=det["tag_id"],
                     tag=det["tag"],
-                    name=det["name"],
+                    file_hash=det["file_hash"],
+                    file_name=det["file_name"],
+                    file_path=det["file_path"],
                     score=det["score"],
                     data_type=det["data_type"]
                 )
