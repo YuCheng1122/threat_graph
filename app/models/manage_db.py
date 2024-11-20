@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.user_db import GroupSignup, UserSignup, SessionLocal
 from app.models.wazuh_db import AgentModel
 from app.schemas.manage import UserInfo
+from app.tools.email import EmailNotification
 from logging import getLogger
 from typing import List
 
@@ -26,6 +27,7 @@ class ManageModel:
                     user.update_date = func.now()
                     
                     if was_disabled and not user.disabled:
+                        # Create group signup when enabling user
                         group_signup = GroupSignup(
                             group_name=user.username,
                             user_signup_id=user.id
@@ -38,7 +40,13 @@ class ManageModel:
                         
                         if not existing_group:
                             session.add(group_signup)
-                            logger.info(f"Created group_signup for user {user.username}")
+                        
+                        # Send approval notification email
+                        EmailNotification.send_approval_notification(
+                            username=user.username,
+                            company_name=user.company_name,
+                            to_email=user.email
+                        )
                     
                     session.commit()
                     return user.disabled
