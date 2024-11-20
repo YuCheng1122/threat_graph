@@ -7,7 +7,9 @@ class RDSEvent(BaseModel):
     timestamp: datetime = Field(..., example="2024-06-16T17:43:52+00:00", description="Timestamp of the event")
     tag_id: str = Field(..., example="0001", description="ID of the detection tag")
     tag: str = Field(..., example="ransomware", description="Type of detection")
-    name: str = Field(..., example="detect the ransomware tool", description="Description of the detection")
+    file_hash: str = Field(..., example="a1b2c3d4e5f6", description="Hash of the detected file")
+    file_name: str = Field(..., example="suspicious.exe", description="Name of the detected file")
+    file_path: str = Field(..., example="C:/Users/Admin/Downloads/", description="Path of the detected file")
     score: str = Field(..., example="100", description="Detection confidence score")
 
 class RDSDetectionRequest(BaseModel):
@@ -17,6 +19,8 @@ class RDSDetectionRequest(BaseModel):
     edge_ip: str = Field(..., example="192.168.100.2", description="IP address of the edge device")
     edge_mac: str = Field(..., example="88:11:22:33:44:55", description="MAC address of the edge device")
     edge_os: str = Field(..., example="Windows", description="Operating system of the edge device")
+    edge_ssid: str = Field(..., example="Office-Network", description="SSID of the connected network")
+    edge_dns_gateway: str = Field(..., example="192.168.1.1", description="DNS gateway of the device")
     event: List[RDSEvent] = Field(..., description="List of detection events")
 
 class RDSDetectionResponse(BaseModel):
@@ -31,9 +35,13 @@ class RDSDetectionRecord(BaseModel):
     edge_ip: str = Field(..., example="192.168.100.2")
     edge_mac: str = Field(..., example="88:11:22:33:44:55")
     edge_os: str = Field(..., example="Windows")
+    edge_ssid: str = Field(..., example="Office-Network")
+    edge_dns_gateway: str = Field(..., example="192.168.1.1")
     tag_id: str = Field(..., example="0001")
     tag: str = Field(..., example="ransomware")
-    name: str = Field(..., example="detect the ransomware tool")
+    file_hash: str = Field(..., example="a1b2c3d4e5f6")
+    file_name: str = Field(..., example="suspicious.exe")
+    file_path: str = Field(..., example="C:/Users/Admin/Downloads/")
     score: str = Field(..., example="100")
     data_type: str = Field(..., example="rds_detection")
 

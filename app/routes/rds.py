@@ -33,12 +33,16 @@ async def post_rds_detection(
         "edge_ip": "192.168.100.2",
         "edge_mac": "88:11:22:33:44:55",
         "edge_os": "Windows",
+        "edge_ssid": "Office-Network",
+        "edge_dns_gateway": "192.168.1.1",
         "event": [
           {
             "timestamp": "2024-06-16T17:43:52+00:00",
             "tag_id": "0001",
             "tag": "ransomware",
-            "name": "detect the ransomware tool",
+            "file_hash": "a1b2c3d4e5f6",
+            "file_name": "suspicious.exe",
+            "file_path": "C:/Users/Admin/Downloads/",
             "score": "100"
           }
         ]
@@ -99,9 +103,13 @@ async def get_rds_detections(
           "edge_ip": "192.168.100.2",
           "edge_mac": "88:11:22:33:44:55",
           "edge_os": "Windows",
+          "edge_ssid": "Office-Network",
+          "edge_dns_gateway": "192.168.1.1",
           "tag_id": "0001",
           "tag": "ransomware",
-          "name": "detect the ransomware tool",
+          "file_hash": "a1b2c3d4e5f6",
+          "file_name": "suspicious.exe",
+          "file_path": "C:/Users/Admin/Downloads/",
           "score": "100",
           "data_type": "rds_detection"
         }
