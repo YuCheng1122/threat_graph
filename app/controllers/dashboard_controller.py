@@ -56,11 +56,11 @@ class DashboardController:
         }
 
     @staticmethod
-    async def clean_ttp_linechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> Dict:
-        """Get TTP timeline data"""
+    async def clean_tactic_linechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> Dict:
+        """Get tactic timeline data"""
         data = await DashboardModel.load_ttp_linechart(start_time, end_time, group_name)
         return {
-            "ttp_linechart": data
+            "tactic_linechart": data
         }
 
     @staticmethod

@@ -193,7 +193,6 @@ async def get_alerts(
         logger.error(f"Error getting alerts: {e}")
         raise InternalServerError("Internal server error")
 
-# Need to test
 @router.get("/cve_barchart", response_model=CVEBarchartResponse)
 async def get_cve_barchart(
     request: CVEBarchartRequest = Depends(),
@@ -254,27 +253,27 @@ async def get_cve_barchart(
         logger.error(f"Error getting cve barchart: {e}")
         raise InternalServerError("Internal server error")
 
-@router.get("/ttp_linechart", response_model=TTPLineChartResponse)
-async def get_ttp_linechart(
-    request: TTPLineChartRequest = Depends(),
+@router.get("/tactic_linechart", response_model=TacticLineChartResponse)
+async def get_tactic_linechart(
+    request: TacticLineChartRequest = Depends(),
     current_user: UserModel = Depends(AuthController.get_current_user)
 ):
     """ 
-    Get TTP linechart.
+    Get tactic linechart.
     Request:
     curl -X 'GET' \
-      'https://flask.aixsoar.com/api/dashboard/ttp_linechart?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
+      'https://flask.aixsoar.com/api/dashboard/tactic_linechart?start_time=2024-01-01T00%3A00%3A00&end_time=2025-01-01T00%3A00%3A00' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer [Token]'
     Response:
     {
       "success": true,
       "content": {
-        "ttp_linechart": [
-        {"label": ['TTP-0001', 'TTP-0002],
+        "tactic_linechart": [
+        {"label": ['Tactic-0001', 'Tactic-0002'],
         "datas": [
-        {"name":"TTP-0001", "type": "line", "data":["2024-11-13", 10], ["2024-11-14", 20]},
-        {"name":"TTP-0002", "type": "line", "data":["2024-11-13", 10], ["2024-11-14", 20]}
+        {"name":"Tactic-0001", "type": "line", "data":["2024-11-13", 10], ["2024-11-14", 20]},
+        {"name":"Tactic-0002", "type": "line", "data":["2024-11-13", 10], ["2024-11-14", 20]}
         ]
         },
         }
@@ -287,27 +286,27 @@ async def get_ttp_linechart(
         if current_user.disabled:
             raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin': 
-            ttp_linechart = await DashboardController.clean_ttp_linechart(
+            tactic_linechart = await DashboardController.clean_tactic_linechart(
                 start_time=request.start_time,
                 end_time=request.end_time
             )
             return {
                 "success": True,
-                "content": ttp_linechart,
+                "content": tactic_linechart,
                 "message": "Success"
             }
         user_groups = UserModel.get_user_groups(current_user.id)
         permission_error = await AgentController.check_user_permission(current_user, user_groups)
         if permission_error:
             raise PermissionError("Permission denied")
-        ttp_linechart = await DashboardController.clean_ttp_linechart(
+        tactic_linechart = await DashboardController.clean_tactic_linechart(
             start_time=request.start_time,
             end_time=request.end_time,
             group_name=user_groups
         )
         return {
             "success": True,
-            "content": ttp_linechart,
+            "content": tactic_linechart,
             "message": "Success"
         }
     except UnauthorizedError as e:
@@ -315,10 +314,9 @@ async def get_ttp_linechart(
     except PermissionError as e:
         raise PermissionError("Permission denied")  
     except Exception as e:
-        logger.error(f"Error getting ttp linechart: {e}")
+        logger.error(f"Error getting tactic linechart: {e}")
         raise InternalServerError("Internal server error")
 
-# Need to test
 @router.get("/malicious_file_barchart", response_model=MaliciousFileBarchartResponse)
 async def get_malicious_file_barchart(
     request: MaliciousFileBarchartRequest = Depends(),
@@ -378,7 +376,6 @@ async def get_malicious_file_barchart(
         logger.error(f"Error getting malicious file barchart: {e}")
         raise InternalServerError("Internal server error")
 
-# Need to test
 @router.get("/authentication_piechart", response_model=AuthenticationPiechartResponse)
 async def get_authentication_piechart(
     request: AuthenticationPiechartRequest = Depends(),

@@ -126,16 +126,18 @@ class DashboardModel:
 
     @staticmethod
     async def load_cve_barchart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
-        """Get CVE statistics from rule_description"""
+        """Get CVE statistics from rule_mitre_tactic"""
         must_conditions = [
-            {"wildcard": {"rule_description": "*CVE-*"}},  # 抓取包含 CVE- 的描述
-            {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
+            {"term": {"wazuh_data_type": "wazuh_events"}},
+            {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
+            {"prefix": {"rule_mitre_tactic": "CVE-"}}
         ]
         
         if group_name:
             must_conditions.append({"terms": {"group_name": group_name}})
-            
+        
         query = {
+            "size": 0,
             "query": {
                 "bool": {
                     "must": must_conditions
@@ -144,9 +146,9 @@ class DashboardModel:
             "aggs": {
                 "cve_stats": {
                     "terms": {
-                        "field": "rule_description.keyword",
+                        "field": "rule_mitre_tactic",
                         "size": 10,
-                        "include": ".*CVE-\\d{4}-\\d{4,7}.*"  # 使用正則表達式匹配 CVE ID
+                        "order": {"_count": "desc"}
                     }
                 }
             }
@@ -154,29 +156,20 @@ class DashboardModel:
         
         result = await es.search(index=final_es_agent_index, body=query)
         
-        # 從 description 中提取 CVE ID
-        def extract_cve(description: str) -> str:
-            import re
-            match = re.search(r'CVE-\d{4}-\d{4,7}', description)
-            return match.group(0) if match else description
-        
         return [
-            {
-                "cve_name": extract_cve(bucket['key']),
-                "count": bucket['doc_count']
-            }
-            for bucket in result['aggregations']['cve_stats']['buckets']
+            {"cve_name": bucket["key"], "count": bucket["doc_count"]}
+            for bucket in result["aggregations"]["cve_stats"]["buckets"]
         ]
 
     @staticmethod
     async def load_ttp_linechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
-        """Get TTP timeline data"""
+        """Get tactic timeline data including CVEs"""
         must_conditions = [
-            {"exists": {"field": "rule_mitre_id"}},
+            {"exists": {"field": "rule_mitre_tactic"}},
             {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
             {"bool": {
                 "must_not": {
-                    "term": {"rule_mitre_id": ""}  # 過濾掉空值
+                    "term": {"rule_mitre_tactic": ""} 
                 }
             }}
         ]
@@ -192,11 +185,11 @@ class DashboardModel:
                 }
             },
             "aggs": {
-                "by_technique": {
+                "by_tactic": {
                     "terms": {
-                        "field": "rule_mitre_id",
+                        "field": "rule_mitre_tactic",
                         "size": 10,
-                        "min_doc_count": 1  # 只返回至少有一個文檔的桶
+                        "min_doc_count": 1
                     },
                     "aggs": {
                         "by_time": {
@@ -213,96 +206,92 @@ class DashboardModel:
         
         result = await es.search(index=final_es_agent_index, body=query)
         
-        # 取得所有非空的技術和時間點
-        techniques = [tech['key'] for tech in result['aggregations']['by_technique']['buckets'] if tech['key'].strip()]
+        # Get all non-empty tactics and timestamps
+        tactics = [tactic['key'] for tactic in result['aggregations']['by_tactic']['buckets'] if tactic['key'].strip()]
         all_times = set()
         
-        for tech_bucket in result['aggregations']['by_technique']['buckets']:
-            if tech_bucket['key'].strip():  # 只處理非空的技術
-                for time_bucket in tech_bucket['by_time']['buckets']:
+        for tactic_bucket in result['aggregations']['by_tactic']['buckets']:
+            if tactic_bucket['key'].strip():  # Only process non-empty tactics
+                for time_bucket in tactic_bucket['by_time']['buckets']:
                     all_times.add(time_bucket['key_as_string'])
         
         all_times = sorted(list(all_times))
         
-        # 建構數據
-        technique_data = {}
-        for tech in techniques:
-            technique_data[tech] = {time: 0 for time in all_times}
+        # Construct data
+        tactic_data = {}
+        for tactic in tactics:
+            tactic_data[tactic] = {time: 0 for time in all_times}
         
-        # 填充數據
-        for tech_bucket in result['aggregations']['by_technique']['buckets']:
-            tech = tech_bucket['key']
-            if tech.strip():  # 只處理非空的技術
-                for time_bucket in tech_bucket['by_time']['buckets']:
+        # Fill data
+        for tactic_bucket in result['aggregations']['by_tactic']['buckets']:
+            tactic = tactic_bucket['key']
+            if tactic.strip():  # Only process non-empty tactics
+                for time_bucket in tactic_bucket['by_time']['buckets']:
                     time = time_bucket['key_as_string']
-                    technique_data[tech][time] = time_bucket['doc_count']
+                    tactic_data[tactic][time] = time_bucket['doc_count']
         
-        # 格式化為所需的結構
-        technique_series = []
-        for tech in techniques:
+        # Format to required structure
+        tactic_series = []
+        for tactic in tactics:
             data_points = []
             for time in all_times:
                 data_points.append({
                     "time": time,
-                    "value": technique_data[tech][time]
+                    "value": tactic_data[tactic][time]
                 })
-            technique_series.append({
-                "name": tech,
+            tactic_series.append({
+                "name": tactic,
                 "type": "line",
                 "data": data_points
             })
         
         return [{
-            "label": [{"label": tech} for tech in techniques],
-            "datas": technique_series
+            "label": [{"label": tactic} for tactic in tactics],
+            "datas": tactic_series
         }]
     
     @staticmethod
     async def load_malicious_file_barchart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
-        """Get malicious file statistics from rule_id 87105"""
+        """Get malicious file statistics from rule_id 87105 and 100003"""
         must_conditions = [
             {"term": {"wazuh_data_type": "wazuh_events"}},
-            {"term": {"rule_id": "87105"}},  # 特定規則 ID
+            {"terms": {"rule_id": ["87105", "100003"]}},
             {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
         ]
         
         if group_name:
             must_conditions.append({"terms": {"group_name": group_name}})
-            
+                
         query = {
+            "size": 10000,
             "query": {
                 "bool": {
                     "must": must_conditions
-                }
-            },
-            "aggs": {
-                "malicious_files": {
-                    "terms": {
-                        "field": "rule_description.keyword",
-                        "size": 20  # 增加返回數量
-                    }
                 }
             }
         }
         
         result = await es.search(index=final_es_agent_index, body=query)
         
+        file_counts = {}
+        for hit in result['hits']['hits']:
+            description = hit['_source']['rule_description']
+            file_counts[description] = file_counts.get(description, 0) + 1
+        
         return [
             {
-                "malicious_file": bucket['key'],
-                "count": bucket['doc_count']
+                "malicious_file": desc,
+                "count": count
             }
-            for bucket in result['aggregations']['malicious_files']['buckets']
+            for desc, count in sorted(file_counts.items(), key=lambda x: x[1], reverse=True)
         ]
 
     @staticmethod
     async def load_authentication_piechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
         """Get authentication failure techniques statistics"""
-
         must_conditions = [
             {"term": {"wazuh_data_type": "wazuh_events"}},
-            {"wildcard": {"rule_description": "*Multiple authentication failures*"}},
-            {"exists": {"field": "rule_mitre_technique"}},
+            {"term": {"rule_id": "60204"}},
             {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}}
         ]
         
@@ -310,6 +299,7 @@ class DashboardModel:
             must_conditions.append({"terms": {"group_name": group_name}})
 
         query = {
+            "size": 0,
             "query": {
                 "bool": {
                     "must": must_conditions
