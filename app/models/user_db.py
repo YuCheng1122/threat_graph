@@ -105,10 +105,17 @@ class UserModel:
             session.commit()
             session.refresh(new_user)
             
-            # Send email notification in background
+            # Send email notifications in background
             threading.Thread(
                 target=EmailNotification.send_signup_notification,
                 args=(username, company_name, email, license_amount, new_user.create_date),
+                daemon=True
+            ).start()
+            
+            # Send confirmation email to user
+            threading.Thread(
+                target=EmailNotification.send_signup_received_notification,
+                args=(username, company_name, email),
                 daemon=True
             ).start()
             
