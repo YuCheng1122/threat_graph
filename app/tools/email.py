@@ -43,7 +43,7 @@ class EmailNotification:
         ───────────────────
         
         請儘速登入管理後台進行帳號審核作業。
-        管理後台網址：https://dashboard.avocadoai.xyz/
+        管理後台網址：https://dashboard.avocadolab.ai/
         
         此為系統自動發送郵件，請勿直接回覆。
         """
@@ -86,7 +86,7 @@ class EmailNotification:
                 </div>
                 
                 <p>請儘速登入管理後台進行帳號審核作業。</p>
-                <p><a href="https://dashboard.avocadoai.xyz/" style="color: #3498db;">點擊此處前往管理後台</a></p>
+                <p><a href="https://dashboard.avocadolab.ai/" style="color: #3498db;">點擊此處前往管理後台</a></p>
                 
                 <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                 
@@ -250,7 +250,7 @@ class EmailNotification:
             ───────────────────
             
             請點擊以下連結登入系統：
-            https://dashboard.avocadoai.xyz/
+            https://dashboard.avocadolab.ai/
             
             此為系統自動發送郵件，請勿直接回覆。
             """
@@ -281,7 +281,7 @@ class EmailNotification:
                     </div>
                     
                     <p>請點擊以下連結登入系統：</p>
-                    <p><a href="https://dashboard.avocadoai.xyz/" style="color: #3498db;">登入系統</a></p>
+                    <p><a href="https://dashboard.avocadolab.ai/" style="color: #3498db;">登入系統</a></p>
                     
                     <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
                     
