@@ -5,6 +5,7 @@ import json
 from logging import getLogger
 from datetime import datetime
 from typing import Dict, List, Optional
+import re
 
 # Get the centralized logger
 logger = getLogger('app_logger')
@@ -255,17 +256,24 @@ class DashboardModel:
         
         result = await es.search(index=final_es_agent_index, body=query)
         
+        def extract_filepath(description: str) -> str:
+            """Extract file path from rule description"""
+            pattern = r'[a-zA-Z]:\\(?:[^\\/:*?"<>|\r\n]+\\)*[^\\/:*?"<>|\r\n]*\.(?:zip|exe|bat|cmd|ps1|vbs|js)'
+            match = re.search(pattern, description)
+            return match.group(0) if match else description
+        
         file_counts = {}
         for hit in result['hits']['hits']:
             description = hit['_source']['rule_description']
-            file_counts[description] = file_counts.get(description, 0) + 1
+            filepath = extract_filepath(description)
+            file_counts[filepath] = file_counts.get(filepath, 0) + 1
         
         return [
             {
-                "malicious_file": desc,
+                "malicious_file": filepath,
                 "count": count
             }
-            for desc, count in sorted(file_counts.items(), key=lambda x: x[1], reverse=True)
+            for filepath, count in sorted(file_counts.items(), key=lambda x: x[1], reverse=True)
         ]
 
     @staticmethod
