@@ -162,87 +162,69 @@ class DashboardModel:
         ]
 
     @staticmethod
-    async def load_ttp_linechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
-        """Get tactic timeline data including CVEs"""
+    async def load_tactic_linechart(start_time: datetime, end_time: datetime, group_name: List[str]=None) -> List[Dict]:
+        """Get tactic timeline data"""
+        # 建立基本查詢條件
         must_conditions = [
             {"exists": {"field": "rule_mitre_tactic"}},
             {"range": {"timestamp": {"gte": start_time.isoformat(), "lte": end_time.isoformat()}}},
-            {"bool": {
-                "must_not": {
-                    "term": {"rule_mitre_tactic": ""} 
-                }
-            }}
+            {"bool": {"must_not": {"term": {"rule_mitre_tactic": ""}}}}
         ]
         
         if group_name:
             must_conditions.append({"terms": {"group_name": group_name}})
             
-        query = {
-            "size": 0,
-            "query": {
-                "bool": {
-                    "must": must_conditions
-                }
-            },
-            "aggs": {
-                "by_tactic": {
-                    "terms": {
-                        "field": "rule_mitre_tactic",
-                        "size": 10,
-                        "min_doc_count": 1
-                    },
-                    "aggs": {
-                        "by_time": {
-                            "date_histogram": {
-                                "field": "timestamp",
-                                "fixed_interval": "1h",
-                                "format": "yyyy-MM-dd HH:mm:ss"
+        # 執行 ES 查詢
+        result = await es.search(
+            index=final_es_agent_index,
+            body={
+                "size": 0,
+                "query": {"bool": {"must": must_conditions}},
+                "aggs": {
+                    "by_tactic": {
+                        "terms": {
+                            "field": "rule_mitre_tactic",
+                            "size": 10,
+                            "min_doc_count": 1
+                        },
+                        "aggs": {
+                            "by_time": {
+                                "date_histogram": {
+                                    "field": "timestamp",
+                                    "fixed_interval": "1h",
+                                    "format": "yyyy-MM-dd HH:mm:ss"
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        )
         
-        result = await es.search(index=final_es_agent_index, body=query)
+        # 過濾並處理資料
+        tactics = [tactic['key'] for tactic in result['aggregations']['by_tactic']['buckets'] 
+                if tactic['key'].strip() and 'CVE' not in tactic['key']]  # 在這裡過濾掉含 CVE 的 tactic
+                
+        if not tactics:
+            return [{"label": [], "datas": []}]
+            
+        # 收集時間點並建立資料結構
+        all_times = {time_bucket['key_as_string']
+                    for tactic in result['aggregations']['by_tactic']['buckets']
+                    if tactic['key'] in tactics
+                    for time_bucket in tactic['by_time']['buckets']}
+        all_times = sorted(all_times)
         
-        # Get all non-empty tactics and timestamps
-        tactics = [tactic['key'] for tactic in result['aggregations']['by_tactic']['buckets'] if tactic['key'].strip()]
-        all_times = set()
-        
-        for tactic_bucket in result['aggregations']['by_tactic']['buckets']:
-            if tactic_bucket['key'].strip():  # Only process non-empty tactics
-                for time_bucket in tactic_bucket['by_time']['buckets']:
-                    all_times.add(time_bucket['key_as_string'])
-        
-        all_times = sorted(list(all_times))
-        
-        # Construct data
-        tactic_data = {}
-        for tactic in tactics:
-            tactic_data[tactic] = {time: 0 for time in all_times}
-        
-        # Fill data
-        for tactic_bucket in result['aggregations']['by_tactic']['buckets']:
-            tactic = tactic_bucket['key']
-            if tactic.strip():  # Only process non-empty tactics
-                for time_bucket in tactic_bucket['by_time']['buckets']:
-                    time = time_bucket['key_as_string']
-                    tactic_data[tactic][time] = time_bucket['doc_count']
-        
-        # Format to required structure
+        # 格式化資料
         tactic_series = []
         for tactic in tactics:
-            data_points = []
-            for time in all_times:
-                data_points.append({
-                    "time": time,
-                    "value": tactic_data[tactic][time]
-                })
+            bucket = next(b for b in result['aggregations']['by_tactic']['buckets'] if b['key'] == tactic)
+            time_data = {b['key_as_string']: b['doc_count'] for b in bucket['by_time']['buckets']}
+            
             tactic_series.append({
                 "name": tactic,
                 "type": "line",
-                "data": data_points
+                "data": [{"time": time, "value": time_data.get(time, 0)} for time in all_times]
             })
         
         return [{
