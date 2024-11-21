@@ -106,29 +106,29 @@ class IoCBarchartResponse(BaseModel):
     content: IoCBarchart
     message: str
 
-#7. TTP Linechart
-class TTPLabel(BaseModel):
-    label: str = Field(description="TTP Label")
+#7. Tactic Linechart
+class TacticLabel(BaseModel):
+    label: str = Field(description="Tactic Label")
 
-class TTPData(BaseModel):
-    name: str = Field(description="TTP Name")
-    type: str = Field(description="TTP Type")
-    data: List[Dict] = Field(description="TTP Data")
+class TacticData(BaseModel):
+    name: str = Field(description="Tactic Name")
+    type: str = Field(description="Chart Type")
+    data: List[Dict] = Field(description="Tactic Data")
 
-class TTP(BaseModel):
-    label: List[TTPLabel] = Field(description="TTP Label")
-    datas: List[TTPData] = Field(description="TTP Data")
+class Tactic(BaseModel):
+    label: List[TacticLabel] = Field(description="Tactic Label")
+    datas: List[TacticData] = Field(description="Tactic Data")
 
-class TTPLineChart(BaseModel):
-    ttp_linechart: List[TTP]
+class TacticLineChart(BaseModel):
+    tactic_linechart: List[Tactic]
 
-class TTPLineChartRequest(BaseModel):
-    start_time: datetime = Field(..., description="Start time for the TTP linechart query")
-    end_time: datetime = Field(..., description="End time for the TTP linechart query")
+class TacticLineChartRequest(BaseModel):
+    start_time: datetime = Field(..., description="Start time for the tactic linechart query")
+    end_time: datetime = Field(..., description="End time for the tactic linechart query")
 
-class TTPLineChartResponse(BaseModel):
+class TacticLineChartResponse(BaseModel):
     success: bool
-    content: TTPLineChart
+    content: TacticLineChart
     message: str
 
 #8. Authentication Piechart
