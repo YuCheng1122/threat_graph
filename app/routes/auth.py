@@ -1,4 +1,5 @@
 from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from app.controllers.auth import AuthController
 from app.schemas.user import UserSignup
@@ -24,6 +25,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         raise UserNotFoundError("Incorrect username or password")
     except AuthControllerError as e:
         raise 
+
+@router.post("/refresh-token")
+async def refresh_access_token(current_user = Depends(AuthController.get_current_user)):
+    try:
+        new_token = AuthController.create_access_token(data={"sub": current_user.username})
+        return {
+            "success": True,
+            "content": {
+                "access_token": new_token,
+                "token_type": "bearer"
+            },
+            "message": "Token refreshed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Token refresh error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Could not refresh token")
   
 @router.post("/signup")
 async def signup_user(user: UserSignup):
