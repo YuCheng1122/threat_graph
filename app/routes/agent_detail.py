@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends
-from app.schemas.agent_schema import AgentMitre, AgentMitreRequest, AgentRansomware, AgentRansomwareRequest, AgentCVE, AgentCVERequest, AgentIoC, AgentIoCRequest, AgentCompliance, AgentComplianceRequest, AgentInfo, AgentInfoRequest, AgentInfoResponse
+from fastapi import APIRouter, Depends, Query
+from datetime import datetime
+from app.schemas.agent_schema import (AgentInfoResponse,
+    AgentAlertsResponse, AgentTacticLinechartResponse, AgentCVEBarchartResponse,
+    AgentMaliciousFileResponse, AgentAuthenticationResponse, AgentEventTableResponse
+)
 from app.controllers.auth import AuthController
 from app.models.user_db import UserModel
 from app.ext.error import UnauthorizedError, PermissionError, InternalServerError
-from app.controllers.agent import AgentDetailController
+from app.controllers.agent_detail_controller import AgentDetailController as ADController
 from app.controllers.wazuh import AgentController
 from logging import getLogger
 
@@ -22,10 +26,9 @@ async def get_agent_info(
 
     Request:
     curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent-info' \
+      'https://flask.aixsoar.com/api/agent_detail/agent-info?agent_name=agent_name' \
       -H 'accept: application/json' \
       -H 'Authorization: Bearer [Token]'
-      -d '{"agent_name": "agent_name"}'
     Response:
     {
       "success": true,
@@ -37,7 +40,8 @@ async def get_agent_info(
           "os": "string",
           "os_version": "string",
           "agent_status": "string",
-          "last_keep_alive": "2023-07-30T12:00:00Z"
+          "last_keep_alive": "2023-07-30T12:00:00Z",
+          "registration_time": "2023-07-30T12:00:00Z"
         }
       ]
     }
@@ -46,14 +50,13 @@ async def get_agent_info(
         if current_user.disabled:
             raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            agent_details = await AgentDetailController.get_agent_info(agent_name)
+            agent_details = await ADController.get_agent_info(agent_name)
             return AgentInfoResponse(success=True, message="Agent info retrieved successfully", content=agent_details)
-        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
         user_groups = UserModel.get_user_groups(current_user.id)
         permission_error = await AgentController.check_user_permission(current_user, user_groups)
         if permission_error:
             raise PermissionError("Permission denied")
-        agent_details = await AgentDetailController.get_agent_info(agent_name)
+        agent_details = await ADController.get_agent_info(agent_name)
         return AgentInfoResponse(success=True, message="Agent info retrieved successfully", content=agent_details)
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
@@ -63,222 +66,272 @@ async def get_agent_info(
         logger.error(f"Error in get_agent_info endpoint: {e}")
         raise InternalServerError()
 
-@router.get("/agent_mitre", response_model=AgentMitre)
-async def get_agent_mitre(
-    request: AgentMitreRequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user),
+@router.get("/alerts", response_model=AgentAlertsResponse)
+async def get_agent_alerts(
+    agent_name: str = Query(..., description="Agent name to filter alerts"),
+    start_time: datetime = Query(..., description="Start time for the alerts query"),
+    end_time: datetime = Query(..., description="End time for the alerts query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
 ):
-    """
-    Get the agent mitre data
-    Request:
-    curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent_mitre?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
-      -H 'accept: application/json' \
-      -H 'Authorization: Bearer Token'
-      -d '{"agent_name": "agent_name"}'
-    Response:
-    {
-        "mitre_data": [
-        {
-            "mitre_tactic": "Defense Evasion",
-            "mitre_technique": "Masquerading",
-            "mitre_count": 3,
-            "mitre_ids": ["T1027", "T1055", "T1078"],
-            "rule_description": "Detects the use of Windows Management Instrumentation Command Line Utility (cmd.exe) to masquerade as a legitimate Windows process."
-        },
-        {
-            "mitre_tactic": "Credential Access",
-            "mitre_technique": "Brute Force",
-            "mitre_count": 2,
-            "mitre_ids": ["T1003", "T1003"],
-            "rule_description": "Detects the use of Windows Management Instrumentation Command Line Utility (cmd.exe) to masquerade as a legitimate Windows process."
-        }
-    ]
-    }
-    """
-
+    """Get alerts for a specific agent"""
     try:
         if current_user.disabled:
             raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            mitre_data = await AgentDetailController.get_agent_mitre(request.agent_name, request.start_time, request.end_time)
-            return AgentMitre(mitre_data=mitre_data)
-        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
-        user_groups = UserModel.get_user_groups(current_user.id)
-        permission_error = await AgentController.check_user_permission(current_user, user_groups)
-        if permission_error:
-            raise PermissionError("Permission denied")
-        mitre_data = await AgentDetailController.get_agent_mitre(request.agent_name, request.start_time, request.end_time)
-        return AgentMitre(mitre_data=mitre_data)
-    except UnauthorizedError:
-        raise UnauthorizedError("Authentication required")
-    except PermissionError:
-        raise PermissionError("Permission denied")
-    except Exception as e:
-        raise InternalServerError(f"An unexpected error occurred: {str(e)}")
-
-@router.get("/agent_ransomware", response_model=AgentRansomware)
-async def get_agent_ransomware(
-    request: AgentRansomwareRequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user),
-):
-    """
-    Get the agent ransomware data
-    Request:
-    curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent_ransomware?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
-      -H 'accept: application/json' \
-      -H 'Authorization: Bearer Token'
-      -d '{"agent_name": "test0"}'
-    Response:
-    {
-        "ransomware_data": [
-            {
-                "name": "VirusTotal: Alert - c:\\users\\admin\\downloads\\unnamed0.zip - 5 engines detected this file",
-                "value": 1
-            },
-            {
-                "name": "VirusTotal: Alert - c:\\users\\admin\\downloads\\teslacrypt.zip - 5 engines detected this file",
-                "value": 1
+            alerts = await ADController.clean_alerts(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": alerts,
+                "message": "Success"
             }
-        ]
-    }
-    """
-    try:
-        if current_user.disabled:
-            raise PermissionError("User account is disabled")
-        if current_user.user_role == 'admin':
-            ransomware_data = await AgentDetailController.get_agent_ransomware(request.agent_name, request.start_time, request.end_time)
-            return AgentRansomware(ransomware_data=ransomware_data)
-        # here have a logic error that using agent_name to search can pass the permission check: new to add new function to check agent_name    
         user_groups = UserModel.get_user_groups(current_user.id)
         permission_error = await AgentController.check_user_permission(current_user, user_groups)
         if permission_error:
             raise PermissionError("Permission denied")
-        ransomware_data = await AgentDetailController.get_agent_ransomware(request.agent_name, request.start_time, request.end_time)
-        return AgentRansomware(ransomware_data=ransomware_data)
-    except UnauthorizedError:
-        raise UnauthorizedError("Authentication required")
-    except PermissionError:
-        raise PermissionError("Permission denied")
-    except Exception as e:
-        raise InternalServerError(f"An unexpected error occurred: {str(e)}") 
-
-@router.get("/agent_cve", response_model=AgentCVE)
-async def get_agent_cve(
-    request: AgentCVERequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user),
-):
-    """
-    Get the agent cve data
-    Request:
-    curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent_cve?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
-      -H 'accept: application/json' \
-      -H 'Authorization: Bearer Token'
-      -d '{"agent_name": "001"}'    
-    Response:
-    {
-        "cve_data": {
-        "cve_name": ["CVE-2024-1234", "CVE-2024-1235"],
-        "cve_count": 2
+        alerts = await ADController.clean_alerts(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            user_groups=user_groups
+        )
+        return {
+            "success": True,
+            "content": alerts,
+            "message": "Success"
         }
-    }
-    """
-    try:
-        if current_user.user_role == 'admin':
-            group_names = None
-        else:
-            group_names = UserModel.get_user_groups(current_user.id)    
-        if not group_names:
-            raise PermissionError("Permission denied")
-        cve_data = await AgentDetailController.get_agent_cve(request.agent_id, request.start_time, request.end_time)
-        return AgentCVE(cve_data=cve_data)
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
     except PermissionError:
         raise PermissionError("Permission denied")
     except Exception as e:
+        logger.error(f"Error getting agent alerts: {e}")
         raise InternalServerError()
 
-@router.get("/agent_ioc", response_model=AgentIoC)
-async def get_agent_ioc(
-    request: AgentIoCRequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user),
+@router.get("/tactic_linechart", response_model=AgentTacticLinechartResponse)
+async def get_agent_tactic_linechart(
+    agent_name: str = Query(..., description="Agent name to filter tactic data"),
+    start_time: datetime = Query(..., description="Start time for the tactic linechart query"),
+    end_time: datetime = Query(..., description="End time for the tactic linechart query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
 ):
-    """
-    Get the agent ioc data
-    Request:
-    curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent_ioc?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
-      -H 'accept: application/json' \
-      -H 'Authorization: Bearer Token'
-      -d '{"agent_name": "001"}'
-    Response:
-    {
-        "ioc_data": [
-        {
-            "ioc_type": "phishing_domain",
-            "ioc_count": 2,
-            "ioc_data": ["example.com", "test.com"]
-        },
-        {
-            "ioc_type": "blacklist_ip",
-            "ioc_count": 2,
-            "ioc_data": ["192.168.1.1", "10.10.10.10"]
-        }
-        ]
-    }
-    """
+    """Get tactic linechart for a specific agent"""
     try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            group_names = None
-        else:
-            group_names = UserModel.get_user_groups(current_user.id)    
-        if not group_names:
+            tactic_data = await ADController.clean_tactic_linechart(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": tactic_data,
+                "message": "Success"
+            }
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
             raise PermissionError("Permission denied")
-        ioc_data = await AgentDetailController.get_agent_ioc(request.agent_id, request.start_time, request.end_time)
-        return AgentIoC(ioc_data=ioc_data)
+        tactic_data = await ADController.clean_tactic_linechart(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            group_name=user_groups
+        )
+        return {
+            "success": True,
+            "content": tactic_data,
+            "message": "Success"
+        }
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
     except PermissionError:
         raise PermissionError("Permission denied")
     except Exception as e:
+        logger.error(f"Error getting agent tactic linechart: {e}")
         raise InternalServerError()
 
-@router.get("/agent_compliance", response_model=AgentCompliance)
-async def get_agent_compliance(
-    request: AgentComplianceRequest = Depends(),
-    current_user: UserModel = Depends(AuthController.get_current_user),
+@router.get("/cve_barchart", response_model=AgentCVEBarchartResponse)
+async def get_agent_cve_barchart(
+    agent_name: str = Query(..., description="Agent name to filter CVE data"),
+    start_time: datetime = Query(..., description="Start time for the CVE barchart query"),
+    end_time: datetime = Query(..., description="End time for the CVE barchart query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
 ):
-    """
-    Get the agent compliance data
-    Request:
-    curl -X 'GET' \
-      'https://flask.aixsoar.com/api/agent_detail/agent_compliance?start_time=2024-10-10T00%3A00%3A00&end_time=2024-10-11T00%3A00%3A00' \
-      -H 'accept: application/json' \
-      -H 'Authorization: Bearer Token'
-      -d '{"agent_id": "001"}'
-    Response:
-    {
-        "compliance_data": {
-        "compliance_name": ["CIS-1234", "CIS-1235"],
-        "compliance_count": 2
-        }
-    }
-    """
+    """Get CVE barchart for a specific agent"""
     try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
         if current_user.user_role == 'admin':
-            group_names = None
-        else:
-            group_names = UserModel.get_user_groups(current_user.id)    
-        if not group_names:
+            cve_data = await ADController.clean_cve_barchart(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": cve_data,
+                "message": "Success"
+            }
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
             raise PermissionError("Permission denied")
-        compliance_data = await AgentDetailController.get_agent_compliance(request.agent_id, request.start_time, request.end_time)
-        return AgentCompliance(compliance_data=compliance_data)
+        cve_data = await ADController.clean_cve_barchart(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            group_name=user_groups
+        )
+        return {
+            "success": True,
+            "content": cve_data,
+            "message": "Success"
+        }
     except UnauthorizedError:
         raise UnauthorizedError("Authentication required")
     except PermissionError:
         raise PermissionError("Permission denied")
     except Exception as e:
+        logger.error(f"Error getting agent CVE barchart: {e}")
+        raise InternalServerError()
+
+@router.get("/malicious_file_barchart", response_model=AgentMaliciousFileResponse)
+async def get_agent_malicious_file_barchart(
+    agent_name: str = Query(..., description="Agent name to filter malicious file data"),
+    start_time: datetime = Query(..., description="Start time for the malicious file barchart query"),
+    end_time: datetime = Query(..., description="End time for the malicious file barchart query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """Get malicious file barchart for a specific agent"""
+    try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
+        if current_user.user_role == 'admin':
+            malicious_file_data = await ADController.clean_malicious_file_barchart(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": malicious_file_data,
+                "message": "Success"
+            }
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
+            raise PermissionError("Permission denied")
+        malicious_file_data = await ADController.clean_malicious_file_barchart(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            group_name=user_groups
+        )
+        return {
+            "success": True,
+            "content": malicious_file_data,
+            "message": "Success"
+        }
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("Permission denied")
+    except Exception as e:
+        logger.error(f"Error getting agent malicious file barchart: {e}")
+        raise InternalServerError()
+
+@router.get("/authentication_piechart", response_model=AgentAuthenticationResponse)
+async def get_agent_authentication_piechart(
+    agent_name: str = Query(..., description="Agent name to filter authentication data"),
+    start_time: datetime = Query(..., description="Start time for the authentication piechart query"),
+    end_time: datetime = Query(..., description="End time for the authentication piechart query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """Get authentication piechart for a specific agent"""
+    try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
+        if current_user.user_role == 'admin':
+            authentication_data = await ADController.clean_authentication_piechart(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": authentication_data,
+                "message": "Success"
+            }
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
+            raise PermissionError("Permission denied")
+        authentication_data = await ADController.clean_authentication_piechart(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            group_name=user_groups
+        )
+        return {
+            "success": True,
+            "content": authentication_data,
+            "message": "Success"
+        }
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("Permission denied")
+    except Exception as e:
+        logger.error(f"Error getting agent authentication piechart: {e}")
+        raise InternalServerError()
+
+@router.get("/event_table", response_model=AgentEventTableResponse)
+async def get_agent_event_table(
+    agent_name: str = Query(..., description="Agent name to filter events"),
+    start_time: datetime = Query(..., description="Start time for the event table query"),
+    end_time: datetime = Query(..., description="End time for the event table query"),
+    current_user: UserModel = Depends(AuthController.get_current_user)
+):
+    """Get event table for a specific agent"""
+    try:
+        if current_user.disabled:
+            raise PermissionError("User account is disabled")
+        if current_user.user_role == 'admin':
+            event_data = await ADController.clean_event_table(
+                start_time=start_time,
+                end_time=end_time,
+                agent_name=agent_name
+            )
+            return {
+                "success": True,
+                "content": event_data,
+                "message": "Success"
+            }
+        user_groups = UserModel.get_user_groups(current_user.id)
+        permission_error = await AgentController.check_user_permission(current_user, user_groups)
+        if permission_error:
+            raise PermissionError("Permission denied")
+        event_data = await ADController.clean_event_table(
+            start_time=start_time,
+            end_time=end_time,
+            agent_name=agent_name,
+            group_name=user_groups
+        )
+        return {
+            "success": True,
+            "content": event_data,
+            "message": "Success"
+        }
+    except UnauthorizedError:
+        raise UnauthorizedError("Authentication required")
+    except PermissionError:
+        raise PermissionError("Permission denied")
+    except Exception as e:
+        logger.error(f"Error getting agent event table: {e}")
         raise InternalServerError()
