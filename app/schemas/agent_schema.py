@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 class AgentInfo(BaseModel):
     agent_id: str
@@ -10,61 +10,75 @@ class AgentInfo(BaseModel):
     os_version: str
     agent_status: str
     last_keep_alive: datetime
-
-class AgentInfoRequest(BaseModel):
-    agent_name: str
+    registration_time: datetime
 
 class AgentInfoResponse(BaseModel):
     success: bool
     content: AgentInfo
     message: str
 
-class AgentMitre(BaseModel):
-    mitre_data: List[Dict[str, Any]]
+class TacticLabel(BaseModel):
+    label: str
 
-class AgentMitreRequest(BaseModel):
-    agent_name: str
-    start_time: str
-    end_time: str
-    
-class RansomwareItem(BaseModel):
+class TacticDataPoint(BaseModel):
+    timestamp: str
+    count: int
+
+class TacticData(BaseModel):
     name: str
-    value: int
+    type: str
+    data: List[TacticDataPoint]
 
-class AgentRansomware(BaseModel):
-    ransomware_data: List[RansomwareItem]
+class Tactic(BaseModel):
+    label: List[TacticLabel]
+    datas: List[TacticData]
 
-class AgentRansomwareRequest(BaseModel):
+class CVEBarchart(BaseModel):
+    cve_name: str
+    count: int
+
+class MaliciousFile(BaseModel):
+    malicious_file: str
+    count: int
+
+class Authentication(BaseModel):
+    tactic: str
+    count: int
+
+class EventTable(BaseModel):
+    timestamp: str
     agent_name: str
-    start_time: datetime
-    end_time: datetime
+    rule_description: str
+    rule_mitre_tactic: Optional[str]
+    rule_mitre_id: Optional[str]
+    rule_level: int
 
-class AgentCVE(BaseModel):
-    cve_data: Dict[str, List[str] | int]
+class AgentAlertsResponse(BaseModel):
+    success: bool
+    content: Dict[str, int]
+    message: str
 
-class AgentCVERequest(BaseModel):
-    agent_name: str
-    start_time: str
-    end_time: str
+class AgentTacticLinechartResponse(BaseModel):
+    success: bool
+    content: List[Tactic]
+    message: str
 
-class IoCItem(BaseModel):
-    ioc_type: str
-    ioc_count: int
-    ioc_data: List[str]
+class AgentCVEBarchartResponse(BaseModel):
+    success: bool
+    content: List[CVEBarchart]
+    message: str
 
-class AgentIoC(BaseModel):
-    ioc_data: List[IoCItem]
+class AgentMaliciousFileResponse(BaseModel):
+    success: bool
+    content: List[MaliciousFile]
+    message: str
 
-class AgentIoCRequest(BaseModel):
-    agent_name: str
-    start_time: str
-    end_time: str
+class AgentAuthenticationResponse(BaseModel):
+    success: bool
+    content: List[Authentication]
+    message: str
 
-class AgentCompliance(BaseModel):
-    compliance_data: Dict[str, List[str] | int]
-
-class AgentComplianceRequest(BaseModel):
-    agent_name: str
-    start_time: str
-    end_time: str
-
+class AgentEventTableResponse(BaseModel):
+    success: bool
+    content: List[EventTable]
+    message: str
